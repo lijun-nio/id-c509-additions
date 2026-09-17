@@ -43,7 +43,7 @@ This document defines additions to CBOR Encoded X.509 Certificates (C509).
 
 This document defines a new C509SubjectPublicKeyInfo type, a CBOR representation of the X.509 SubjectDirectoryAttributes extension, and a mechanism that allows organizations assigned a Private Enterprise Number (PEN) to define organization-specific integer identifiers without registering each identifier in the C509 RDN attribute type, CR attribute type, extension ID, certificate policy, or extended key usage registries.
 
-This document also defines textual encoding labels for C509 objects using the textual encoding conventions specified in RFC 7468.
+This document also defines textual encoding labels for C509 objects using the textual encoding conventions specified in RFC 7468, and updates RFC 6698 by extending the "TLSA Certificate Usages" registry to include C509 certificates.
 
 --- middle
 
@@ -53,7 +53,7 @@ This document also defines textual encoding labels for C509 objects using the te
 
 The base C509 specification defines the public key as fields within the certificate structure. It also defines compact integer identifiers for selected X.509 RDN attribute types, CR attribute types, extension IDs, certificate policies, and extended key usages.
 
-This document defines additions to the C509 specification in four areas.
+This document defines additions to the C509 specification in five areas.
 
 - Defines a new structure C509SubjectPublicKeyInfo which corresponds to SubjectPublicKeyInfo in X.509 {{Section 4.1 of RFC5280}}. This permits a C509 public key to be represented independently of a complete C509 certificate.
 
@@ -62,6 +62,8 @@ This document defines additions to the C509 specification in four areas.
 - Defines PEN-scoped identifiers. An organization that has been assigned a Private Enterprise Number (PEN) can assign integer values within its own namespace. Such identifiers can be used for RDN attribute types, CR attribute types, extension IDs, certificate policies, and extended key usages without requiring each identifier to be registered in a C509 IANA registry.
 
 - Defines PEM labels for C509 objects using the textual encoding framework specified by {{RFC7468}}.
+
+- Updates RFC 6698 by extending the "TLSA Certificate Usages" registry to include C509 certificates. 
 
 This document is intended to be used together with {{I-D.ietf-cose-cbor-encoded-cert}}. It does not define a new certificate format; it adds types and encoding mechanisms to the C509 data model.
 
@@ -284,6 +286,12 @@ The following table summarizes all PEM labels defined in this document and compa
 TODO
 
 # IANA Considerations {#iana}
+
+## TLSA Certificate Usages Registry {#tlsa}
+
+This document extends the following entry in the "TLSA Certificate Usages" registry in the registry group "DNS-Based Authentication of Named Entities (DANE) Parameters".
+
+The "TLSA Certificate Usages" registry defined in {{RFC6698}} originally only applied to PKIX {{RFC5280}} certificates in DER encoding. This specification updates {{RFC6698}} to accept the use of C509 certificates. For the values 0, 1, 2, and 3, the "Reference" field is extended by [[this document]], namely from "[RFC 6698]" to "[RFC 6698], [[this document]]".
 
 ## C509 Subject Directory Attributes Registry {#subjectdirectoryattrtype}
 
