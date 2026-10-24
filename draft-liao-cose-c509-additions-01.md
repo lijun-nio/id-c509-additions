@@ -20,7 +20,7 @@ venue:
 
 author:
   - name: Lijun Liao
-    org: NIO
+    org: NIO Inc.
     email: lijun.liao@nio.io
 
 normative:
@@ -31,6 +31,8 @@ normative:
   RFC8949:
   RFC9090:
   I-D.ietf-cose-cbor-encoded-cert:
+  I-D.bonnell-lamps-pem-label-registry:
+  IANA.cbor-tags:
   X.690:
     title: ASN.1 encoding rules. Specification of Basic Encoding Rules (BER), Canonical Encoding Rules (CER) and Distinguished Encoding Rules (DER)
     target: https://www.itu.int/rec/T-REC-X.690
@@ -43,7 +45,7 @@ This document defines additions to CBOR Encoded X.509 Certificates (C509).
 
 This document defines a new C509SubjectPublicKeyInfo type, a CBOR representation of the X.509 SubjectDirectoryAttributes extension, and a mechanism that allows organizations assigned a Private Enterprise Number (PEN) to define organization-specific integer identifiers without registering each identifier in the C509 RDN attribute type, CR attribute type, extension ID, certificate policy, or extended key usage registries.
 
-This document also defines textual encoding labels for C509 objects using the textual encoding conventions specified in RFC 7468, and updates RFC 6698 by extending the "TLSA Certificate Usages" registry to include C509 certificates.
+This document also defines textual encoding labels for C509 objects using the textual encoding conventions specified in RFC 7468.
 
 --- middle
 
@@ -53,7 +55,7 @@ This document also defines textual encoding labels for C509 objects using the te
 
 The base C509 specification defines the public key as fields within the certificate structure. It also defines compact integer identifiers for selected X.509 RDN attribute types, CR attribute types, extension IDs, certificate policies, and extended key usages.
 
-This document defines additions to the C509 specification in five areas.
+This document defines additions to the C509 specification in four areas.
 
 - Defines a new structure C509SubjectPublicKeyInfo which corresponds to SubjectPublicKeyInfo in X.509 {{Section 4.1 of RFC5280}}. This permits a C509 public key to be represented independently of a complete C509 certificate.
 
@@ -62,8 +64,6 @@ This document defines additions to the C509 specification in five areas.
 - Defines PEN-scoped identifiers. An organization that has been assigned a Private Enterprise Number (PEN) can assign integer values within its own namespace. Such identifiers can be used for RDN attribute types, CR attribute types, extension IDs, certificate policies, and extended key usages without requiring each identifier to be registered in a C509 IANA registry.
 
 - Defines PEM labels for C509 objects using the textual encoding framework specified by {{RFC7468}}.
-
-- Updates RFC 6698 by extending the "TLSA Certificate Usages" registry to include C509 certificates. 
 
 This document is intended to be used together with {{I-D.ietf-cose-cbor-encoded-cert}}. It does not define a new certificate format; it adds types and encoding mechanisms to the C509 data model.
 
@@ -81,7 +81,7 @@ C509SubjectPublicKeyInfo = [
   subjectPublicKey          : Defined
 ]
 ~~~~~~~~~~~
-{: sourcecode-name="c509addtions.cddl"}
+{: sourcecode-name="c509additions.cddl"}
 {: #fig-C509SubjectPublicKeyInfoCDDL title="CDDL for C509SubjectPublicKeyInfo"}
 
 The subjectPublicKeyAlgorithm field has the same encoding and semantics as the subjectPublicKeyAlgorithm field of TBSCertificate in {{I-D.ietf-cose-cbor-encoded-cert}}. The subjectPublicKey field has the same encoding and semantics as the subjectPublicKey field of TBSCertificate in {{I-D.ietf-cose-cbor-encoded-cert}}.
@@ -104,7 +104,7 @@ SubjectDirectoryAttribute =
    ( attributeType: ~oid, attributeValue: bytes ))
 
 ~~~~~~~~~~~
-{: sourcecode-name="c509addtions.cddl"}
+{: sourcecode-name="c509additions.cddl"}
 {: #fig-SubjectDirectoryAttributes title="CDDL for SubjectDirectoryAttributes"}
 
 Each 'attributeType' is encoded either as a CBOR int (see {{subjectdirectoryattrtype}}) or as an unwrapped CBOR OID {{RFC9090}}.
@@ -118,7 +118,7 @@ The personal data attribute 'DateOfBirth' is defined in {{RFC3739}} as 'Generali
 
 ### PlaceOfBirth
 
-The personal data attribute 'PlaceOfBirth' is defined in {{RFC3739}} as 'DirectoryString'. In C509, the 'attributeValue' field has type PlaceOfBirth. A UTF8 String is encoded as CBOR text, and a Printable String is tagged with number 121 (alternative 0, as defined in [IANA-CBOR-TAGS]). All other string types are not supported. For native certificates and certification requests, only UTF8 String is allowed.
+The personal data attribute 'PlaceOfBirth' is defined in {{RFC3739}} as 'DirectoryString'. In C509, the 'attributeValue' field has type PlaceOfBirth. A UTF8 String is encoded as CBOR text, and a Printable String is tagged with number 121 (alternative 0, as defined in {{IANA.cbor-tags}}). All other string types are not supported. For native certificates and certification requests, only UTF8 String is allowed.
 
 PlaceOfBirth = text / #6.121(text)
 
@@ -157,7 +157,7 @@ This document therefore reserves two intervals for PEN-scoped identifiers for th
   For all identifiers that cannot be represented in the interval [2^31, 2^32 - 1]:
 
   - PEN in the interval [2^21, 2^32 -1] and internal ID in [0, 2^15 - 1]
-  - PEN in [0, 2^21 - 1] and internal ID in [2^11, 2^15 - 1]
+  - PEN in [0, 2^21 - 1] and internal ID in [2^10, 2^15 - 1]
 
   The integer value is constructed as follows:
 
@@ -272,11 +272,11 @@ The payload is a CBOR-encoded `C509PEM` as defined in {{I-D.ietf-cose-cbor-encod
 The following table summarizes all PEM labels defined in this document and compares them with RFC 7468 labels for equivalent DER-encoded structures.
 
 | PEM Label | C509 Structure | Defined in | RFC 7468 Label |
-|:---|:---|:---|
+|:---|:---|:---|:---|
 | `C509 CERTIFICATE` | `C509Certificate` | {{I-D.ietf-cose-cbor-encoded-cert}} | `CERTIFICATE` |
 | `COSE C509` | `COSE_C509` | {{I-D.ietf-cose-cbor-encoded-cert}} | N/A |
 | `C509 CERTIFICATE REQUEST` | `C509CertificationRequest` | {{I-D.ietf-cose-cbor-encoded-cert}} | `CERTIFICATE REQUEST` |
-| `C509 PUBLIC KEY` | `C509PublicKey` | [[this document]] | `PUBLIC KEY` |
+| `C509 PUBLIC KEY` | `C509SubjectPublicKeyInfo` | [[this document]] | `PUBLIC KEY` |
 | `C509 PRIVATE KEY` | `C509PrivateKey` | {{I-D.ietf-cose-cbor-encoded-cert}} | `PRIVATE KEY` |
 | `C509 PEM` | `C509PEM` | {{I-D.ietf-cose-cbor-encoded-cert}} | N/A |
 {: #tab-pem-labels title="PEM Labels Defined in This Document"}
@@ -287,17 +287,11 @@ TODO
 
 # IANA Considerations {#iana}
 
-## TLSA Certificate Usages Registry {#tlsa}
-
-This document extends the following entry in the "TLSA Certificate Usages" registry in the registry group "DNS-Based Authentication of Named Entities (DANE) Parameters".
-
-The "TLSA Certificate Usages" registry defined in {{RFC6698}} originally only applied to PKIX {{RFC5280}} certificates in DER encoding. This specification updates {{RFC6698}} to accept the use of C509 certificates. For the values 0, 1, 2, and 3, the "Reference" field is extended by [[this document]], namely from "[RFC 6698]" to "[RFC 6698], [[this document]]".
-
 ## C509 Subject Directory Attributes Registry {#subjectdirectoryattrtype}
 
 IANA has created a new registry titled "C509 Subject Directory Attributes" under the registry group "CBOR Encoded X.509 (C509)". The registry fields are Value, Name, Identifiers, OID, DER, Comments, attributeValue, and Reference, where Value is an integer in the interval [-2^63, 2^63 - 1], and the other columns are text strings. Name and Identifiers are informal descriptions. The fields Name, OID, and DER are mandatory. For Subject Directory Attributes specified only for CBOR encoded certificates where no OID is defined, the OID and DER fields are marked "N/A". If an OID is present, it is given in dotted decimal representation, and the DER column contains the hex string of the DER-encoded OID {{X.690}}. If the attribute is not expected to be understood from the other information (for example, the OID), then the Comments field must contain a reference to where the Subject Directory Attribute is described.
 
-Values in the interval \[32768, 65535\] are reserved for Private Use, values in the intervals \[2^31, 2^32 - 1\] and \[2^47, 2^48-1\] are reserved for PEN identifiers as in {{pen-id}}, values in the intervals \[65536, 2^31 -1\], \[2^32, 2^47 -1\], and [2^48, 2^63 - 1\] are reserved for Future Use. For values in the interval \[-24, 23\] the registration procedure is "IETF Review with Expert Review", and for all other values the registration procedure is "Expert Review".
+Values in the interval \[32768, 65535\] are reserved for Private Use, values in the intervals \[2^31, 2^32 - 1\] and \[2^47, 2^48-1\] are reserved for PEN identifiers as in {{pen-id}}, values in the intervals \[65536, 2^31 -1\], \[2^32, 2^47 -1\], and \[2^48, 2^63 - 1\] are reserved for Future Use. For values in the interval \[-24, 23\] the registration procedure is "IETF Review with Expert Review", and for all other values the registration procedure is "Expert Review".
 
 The initial contents of the registry are:
 
@@ -307,31 +301,35 @@ The initial contents of the registry are:
 +=======+===========================================================+
 |     1 | Name:            DateOfBirth                              |
 |       | Identifiers:     id-pda-dateOfBirth                       |
-|       | OID:             1.2.840.113549.1.9.14                    |
+|       | OID:             1.3.6.1.5.5.7.9.1                        |
 |       | DER:             06 08 2B 06 01 05 05 07 09 01            |
 |       | Comments:        RFC 3739                                 |
 |       | attributeValue:  text                                     |
 +-------+-----------------------------------------------------------+
 |     2 | Name:            PlaceOfBirth                             |
 |       | Identifiers:     id-pda-placeOfBirth                      |
+|       | OID:             1.3.6.1.5.5.7.9.2                        |
 |       | DER:             06 08 2B 06 01 05 05 07 09 02            |
 |       | Comments:        RFC 3739                                 |
 |       | attributeValue:  PlaceOfBirth                             |
 +-------+-----------------------------------------------------------+
 |     3 | Name:            Gender                                   |
 |       | Identifiers:     id-pda-gender                            |
+|       | OID:             1.3.6.1.5.5.7.9.3                        |
 |       | DER:             06 08 2B 06 01 05 05 07 09 03            |
 |       | Comments:        RFC 3739                                 |
 |       | attributeValue:  text                                     |
 +-------+-----------------------------------------------------------+
 |     4 | Name:            CountryOfCitizenship                     |
 |       | Identifiers:     id-pda-countryOfCitizenship              |
+|       | OID:             1.3.6.1.5.5.7.9.4                        |
 |       | DER:             06 08 2B 06 01 05 05 07 09 04            |
 |       | Comments:        RFC 3739                                 |
 |       | attributeValue:  text                                     |
 +-------+-----------------------------------------------------------+
 |     5 | Name:            CountryOfResidence                       |
 |       | Identifiers:     id-pda-countryOfResidence                |
+|       | OID:             1.3.6.1.5.5.7.9.5                        |
 |       | DER:             06 08 2B 06 01 05 05 07 09 05            |
 |       | Comments:        RFC 3739                                 |
 |       | attributeValue:  text                                     |
@@ -344,44 +342,44 @@ The initial contents of the registry are:
 
 This document updates the following ranges in the "C509 RDN Attributes" registry in the registry group "CBOR Encoded X.509 (C509)".
 
-The ranges[2^31, 2^32 -1] and [2^47, 2^48 -1] are reserved for PEN identifiers as in {{pen-id}}.
+The ranges [2^31, 2^32 -1] and [2^47, 2^48 -1] are reserved for PEN identifiers as in {{pen-id}}.
 
 ## C509 CR Attributes Registry {#cratttype}
 
 This document updates the following ranges in the "C509 CR Attributes" registry in the registry group "CBOR Encoded X.509 (C509)".
 
-The ranges[2^31, 2^32 -1] and [2^47, 2^48 -1] are reserved for PEN identifiers as in {{pen-id}}.
+The ranges [2^31, 2^32 -1] and [2^47, 2^48 -1] are reserved for PEN identifiers as in {{pen-id}}.
 
 ## C509 Extensions Registry {#extype}
 
 This document updates the following ranges in the "C509 Extensions" registry in the registry group "CBOR Encoded X.509 (C509)".
 
-The ranges[2^31, 2^32 -1] and [2^47, 2^48 -1] are reserved for PEN identifiers as in {{pen-id}}.
+The ranges [2^31, 2^32 -1] and [2^47, 2^48 -1] are reserved for PEN identifiers as in {{pen-id}}.
 
 ## C509 Certificate Policies Registry {#CP}
 
 This document updates the following ranges in the "C509 Certificate Policies" registry in the registry group "CBOR Encoded X.509 (C509)".
 
-The ranges[2^31, 2^32 -1] and [2^47, 2^48 -1] are reserved for PEN identifiers as in {{pen-id}}.
+The ranges [2^31, 2^32 -1] and [2^47, 2^48 -1] are reserved for PEN identifiers as in {{pen-id}}.
 
 ## C509 Extended Key Usages Registry {#EKU}
 
 This document updates the following ranges in the "C509 Extended Key Usages" registry in the registry group "CBOR Encoded X.509 (C509)".
 
-The ranges[2^31, 2^32 -1] and [2^47, 2^48 -1] are reserved for PEN identifiers as in {{pen-id}}.
+The ranges [2^31, 2^32 -1] and [2^47, 2^48 -1] are reserved for PEN identifiers as in {{pen-id}}.
 
 ## PEM Label Registry {#iana-pem}
 
-IANA is requested to register the following entries in the "Textual Encoding Label" registry under the registry group "PKIX Parameters" {{RFC7468}}:
+IANA is requested to register the following entries in the "PEM Labels" registry defined in {{I-D.bonnell-lamps-pem-label-registry}}:
 
-| Label | Reference |
-|:---|:---|
-| `C509 CERTIFICATE` | This document |
-| `COSE C509` | This document |
-| `C509 CERTIFICATE REQUEST` | This document |
-| `C509 PUBLIC KEY` | This document |
-| `C509 PRIVATE KEY` | This document |
-| `C509 PEM` | This document |
+| Label | Format Reference | Reference |
+|:---|:---|:---|
+| C509 CERTIFICATE | {{I-D.ietf-cose-cbor-encoded-cert}} | [[this document]] |
+| COSE C509 | {{I-D.ietf-cose-cbor-encoded-cert}} | [[this document]] |
+| C509 CERTIFICATE REQUEST | {{I-D.ietf-cose-cbor-encoded-cert}} | [[this document]] |
+| C509 PUBLIC KEY | [[this document]] | [[this document]] |
+| C509 PRIVATE KEY | {{I-D.ietf-cose-cbor-encoded-cert}} | [[this document]] |
+| C509 PEM | {{I-D.ietf-cose-cbor-encoded-cert}} | [[this document]] |
 {: #tab-iana-pem title="PEM Label Registrations"}
 
 ## CoAP Content-Formats Registry {#content-format}
