@@ -31,7 +31,6 @@ normative:
   RFC8949:
   RFC9090:
   I-D.ietf-cose-cbor-encoded-cert:
-  I-D.bonnell-lamps-pem-label-registry:
   IANA.cbor-tags:
   X.690:
     title: ASN.1 encoding rules. Specification of Basic Encoding Rules (BER), Canonical Encoding Rules (CER) and Distinguished Encoding Rules (DER)
@@ -281,6 +280,11 @@ The following table summarizes all PEM labels defined in this document and compa
 | `C509 PEM` | `C509PEM` | {{I-D.ietf-cose-cbor-encoded-cert}} | N/A |
 {: #tab-pem-labels title="PEM Labels Defined in This Document"}
 
+{::comment}
+Note to the author: ask the authors of draft-bonnell-lamps-pem-label-registry to add the
+PEM labels defined in this document to the initial contents of their "PEM Labels" registry.
+{:/comment}
+
 # Security Considerations {#security}
 
 TODO
@@ -365,20 +369,6 @@ The ranges [2^31, 2^32 -1] and [2^47, 2^48 -1] are reserved for PEN identifiers 
 This document updates the following ranges in the "C509 Extended Key Usages" registry in the registry group "CBOR Encoded X.509 (C509)".
 
 The ranges [2^31, 2^32 -1] and [2^47, 2^48 -1] are reserved for PEN identifiers as in {{pen-id}}.
-
-## PEM Label Registry {#iana-pem}
-
-IANA is requested to register the following entries in the "PEM Labels" registry defined in {{I-D.bonnell-lamps-pem-label-registry}}:
-
-| Label | Format Reference | Reference |
-|:---|:---|:---|
-| C509 CERTIFICATE | {{I-D.ietf-cose-cbor-encoded-cert}} | [[this document]] |
-| COSE C509 | {{I-D.ietf-cose-cbor-encoded-cert}} | [[this document]] |
-| C509 CERTIFICATE REQUEST | {{I-D.ietf-cose-cbor-encoded-cert}} | [[this document]] |
-| C509 PUBLIC KEY | [[this document]] | [[this document]] |
-| C509 PRIVATE KEY | {{I-D.ietf-cose-cbor-encoded-cert}} | [[this document]] |
-| C509 PEM | {{I-D.ietf-cose-cbor-encoded-cert}} | [[this document]] |
-{: #tab-iana-pem title="PEM Label Registrations"}
 
 ## CoAP Content-Formats Registry {#content-format}
 
