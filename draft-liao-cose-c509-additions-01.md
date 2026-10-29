@@ -43,7 +43,7 @@ informative:
 
 This document defines additions to CBOR Encoded X.509 Certificates (C509).
 
-This document defines a new C509SubjectPublicKeyInfo type, a CBOR representation of the X.509 SubjectDirectoryAttributes extension, and a mechanism that allows organizations assigned a Private Enterprise Number (PEN) to define organization-specific integer identifiers without registering each identifier in the C509 RDN attribute type, CR attribute type, extension ID, certificate policy, or extended key usage registries.
+This document defines a new C509SubjectPublicKeyInfo type, a CBOR representation of the X.509 SubjectDirectoryAttributes extension, and a mechanism that allows organizations assigned a Private Enterprise Number (PEN) to define organization-specific integer identifiers without registering each identifier in the C509 RDN attribute type, attribute type, extension ID, certificate policy, or extended key usage registries.
 
 This document also defines textual encoding labels for C509 objects using the textual encoding conventions specified in RFC 7468.
 
@@ -53,15 +53,15 @@ This document also defines textual encoding labels for C509 objects using the te
 
 {{I-D.ietf-cose-cbor-encoded-cert}} defines C509 certificate structure, a compact CBOR encoding of X.509 certificates. C509 supports a large subset of the X.509 certificate profile defined in {{RFC5280}} and is designed for use in constrained environments as well as general certificate-based protocols.
 
-The base C509 specification defines the public key as fields within the certificate structure. It also defines compact integer identifiers for selected X.509 RDN attribute types, CR attribute types, extension IDs, certificate policies, and extended key usages.
+The base C509 specification defines the public key as fields within the certificate structure. It also defines compact integer identifiers for selected X.509 RDN attribute types, certification request (CR) attribute types, extension IDs, certificate policies, and extended key usages.
 
 This document defines additions to the C509 specification in four areas.
 
 - Defines a new structure C509SubjectPublicKeyInfo which corresponds to SubjectPublicKeyInfo in X.509 {{Section 4.1 of RFC5280}}. This permits a C509 public key to be represented independently of a complete C509 certificate.
 
-- Defines the C509 representation of the X.509 SubjectDirectoryAttributes extension specified in {{Section 4.2.1.8 of RFC5280}}.
+- Defines the C509 representation of the X.509 SubjectDirectoryAttributes extension specified in {{Section 4.2.1.8 of RFC5280}}. The "C509 CR Attributes" registry is renamed to "C509 Attributes", which is a general registry for attributes, and is extended with entries for subject directory attributes.
 
-- Defines PEN-scoped identifiers. An organization that has been assigned a Private Enterprise Number (PEN) can assign integer values within its own namespace. Such identifiers can be used for RDN attribute types, CR attribute types, extension IDs, certificate policies, and extended key usages without requiring each identifier to be registered in a C509 IANA registry.
+- Defines PEN-scoped identifiers. An organization that has been assigned a Private Enterprise Number (PEN) can assign integer values within its own namespace. Such identifiers can be used for RDN attribute types, attribute types, extension IDs, certificate policies, and extended key usages without requiring each identifier to be registered in a C509 IANA registry.
 
 - Defines PEM labels for C509 objects using the textual encoding framework specified by {{RFC7468}}.
 
@@ -107,7 +107,7 @@ SubjectDirectoryAttribute =
 {: sourcecode-name="c509additions.cddl"}
 {: #fig-SubjectDirectoryAttributes title="CDDL for SubjectDirectoryAttributes"}
 
-Each 'attributeType' is encoded either as a CBOR int (see {{subjectdirectoryattrtype}}) or as an unwrapped CBOR OID {{RFC9090}}.
+Each 'attributeType' is encoded either as a CBOR int (see {{attrtype}}) or as an unwrapped CBOR OID {{RFC9090}}.
 
 - If 'attributeType' is encoded as a CBOR int, it is followed by a CBOR item of any type other than undefined. The specific type of the item is determined by 'attributeType'.
 - If 'attributeType' is encoded as an unwrapped CBOR OID, it is followed by the DER-encoded 'values' (which is SET OF AttributeValue) encoded as a CBOR byte string.
@@ -136,11 +136,11 @@ The personal data attribute 'CountryOfResidence' is defined in {{RFC3739}} as 'P
 
 # PEN-Scoped Identifiers {#pen-id}
 
-{{I-D.ietf-cose-cbor-encoded-cert}} defines integer identifiers for commonly used RDN attributes, CR attributes, extensions, extended key usages, and certificate policies, and this document defines the subject directory attributes. These integer identifiers provide compact encodings.
+{{I-D.ietf-cose-cbor-encoded-cert}} defines integer identifiers for commonly used RDN attributes, CR attributes, extensions, extended key usages, and certificate policies, and this document registers integer identifiers for subject directory attributes in the general "C509 Attributes" registry (formerly "C509 CR Attributes"). These integer identifiers provide compact encodings.
 
 An organization may also need identifiers that are meaningful only within its own ecosystem. Requiring each such identifier to be allocated from an IANA registry is unnecessary when the organization already has a globally unique namespace through a Private Enterprise Number.
 
-This document therefore reserves two intervals for PEN-scoped identifiers for the RDN attributes, CR attributes, extensions, extended key usages, certificate policies, and subject directory attributes. Both the PEN and the internal ID are represented as 'bn ... b1 b0', where bn is the most significant bit and b0 is the least significant bit.
+This document therefore reserves two intervals for PEN-scoped identifiers for the RDN attributes, attributes (for example, CR attributes and subject directory attributes), extensions, extended key usages, and certificate policies. Both the PEN and the internal ID are represented as 'bn ... b1 b0', where bn is the most significant bit and b0 is the least significant bit.
 
 - Interval [2^31, 2^32 - 1]:
 
@@ -287,47 +287,57 @@ TODO
 
 # IANA Considerations {#iana}
 
-## C509 Subject Directory Attributes Registry {#subjectdirectoryattrtype}
+## C509 RDN Attributes Registry {#rdnatttype}
 
-IANA has created a new registry titled "C509 Subject Directory Attributes" under the registry group "CBOR Encoded X.509 (C509)". The registry fields are Value, Name, Identifiers, OID, DER, Comments, attributeValue, and Reference, where Value is an integer in the interval [-2^63, 2^63 - 1], and the other columns are text strings. Name and Identifiers are informal descriptions. The fields Name, OID, and DER are mandatory. For Subject Directory Attributes specified only for CBOR encoded certificates where no OID is defined, the OID and DER fields are marked "N/A". If an OID is present, it is given in dotted decimal representation, and the DER column contains the hex string of the DER-encoded OID {{X.690}}. If the attribute is not expected to be understood from the other information (for example, the OID), then the Comments field must contain a reference to where the Subject Directory Attribute is described.
+This document updates the following ranges in the "C509 RDN Attributes" registry in the registry group "CBOR Encoded X.509 (C509)".
 
-Values in the interval \[32768, 65535\] are reserved for Private Use, values in the intervals \[2^31, 2^32 - 1\] and \[2^47, 2^48-1\] are reserved for PEN identifiers as in {{pen-id}}, values in the intervals \[65536, 2^31 -1\], \[2^32, 2^47 -1\], and \[2^48, 2^63 - 1\] are reserved for Future Use. For values in the interval \[-24, 23\] the registration procedure is "IETF Review with Expert Review", and for all other values the registration procedure is "Expert Review".
+The ranges [2^31, 2^32 -1] and [2^47, 2^48 -1] are reserved for PEN identifiers as in {{pen-id}}.
 
-The initial contents of the registry are:
+## C509 Attributes Registry {#attrtype}
+
+This document updates the "C509 CR Attributes" registry in the registry group "CBOR Encoded X.509 (C509)" defined in {{I-D.ietf-cose-cbor-encoded-cert}} as follows:
+
+- The registry is renamed from "C509 CR Attributes" to "C509 Attributes". The registry is a general registry for attributes (the Attribute type, which pairs an attribute type with attribute values), wherever they are used in C509 structures. Examples include attributes in C509 certification requests and attributes in the SubjectDirectoryAttributes extension (see {{ext-SubjectDirectoryAttributes}}).
+
+- The column heading "CR Attribute" is renamed to "Attribute".
+
+- The ranges [2^31, 2^32 -1] and [2^47, 2^48 -1] are reserved for PEN identifiers as in {{pen-id}}.
+
+IANA is requested to add the following entries to the "C509 Attributes" registry:
 
 ~~~~~~~~~~~
 +-------+-----------------------------------------------------------+
-| Value | Subject Directory Attribute                               |
+| Value | Attribute                                                 |
 +=======+===========================================================+
-|     1 | Name:            DateOfBirth                              |
+|     3 | Name:            DateOfBirth                              |
 |       | Identifiers:     id-pda-dateOfBirth                       |
 |       | OID:             1.3.6.1.5.5.7.9.1                        |
 |       | DER:             06 08 2B 06 01 05 05 07 09 01            |
 |       | Comments:        RFC 3739                                 |
 |       | attributeValue:  text                                     |
 +-------+-----------------------------------------------------------+
-|     2 | Name:            PlaceOfBirth                             |
+|     4 | Name:            PlaceOfBirth                             |
 |       | Identifiers:     id-pda-placeOfBirth                      |
 |       | OID:             1.3.6.1.5.5.7.9.2                        |
 |       | DER:             06 08 2B 06 01 05 05 07 09 02            |
 |       | Comments:        RFC 3739                                 |
 |       | attributeValue:  PlaceOfBirth                             |
 +-------+-----------------------------------------------------------+
-|     3 | Name:            Gender                                   |
+|     5 | Name:            Gender                                   |
 |       | Identifiers:     id-pda-gender                            |
 |       | OID:             1.3.6.1.5.5.7.9.3                        |
 |       | DER:             06 08 2B 06 01 05 05 07 09 03            |
 |       | Comments:        RFC 3739                                 |
 |       | attributeValue:  text                                     |
 +-------+-----------------------------------------------------------+
-|     4 | Name:            CountryOfCitizenship                     |
+|     6 | Name:            CountryOfCitizenship                     |
 |       | Identifiers:     id-pda-countryOfCitizenship              |
 |       | OID:             1.3.6.1.5.5.7.9.4                        |
 |       | DER:             06 08 2B 06 01 05 05 07 09 04            |
 |       | Comments:        RFC 3739                                 |
 |       | attributeValue:  text                                     |
 +-------+-----------------------------------------------------------+
-|     5 | Name:            CountryOfResidence                       |
+|     7 | Name:            CountryOfResidence                       |
 |       | Identifiers:     id-pda-countryOfResidence                |
 |       | OID:             1.3.6.1.5.5.7.9.5                        |
 |       | DER:             06 08 2B 06 01 05 05 07 09 05            |
@@ -335,20 +345,8 @@ The initial contents of the registry are:
 |       | attributeValue:  text                                     |
 +-------+-----------------------------------------------------------+
 ~~~~~~~~~~~
-{: #fig-subjectdirectoryattrtype title="C509 Subject Directory Attributes"}
+{: #fig-attrtype-additions title="Additional Entries in the C509 Attributes Registry"}
 {: artwork-align="center"}
-
-## C509 RDN Attributes Registry {#rdnatttype}
-
-This document updates the following ranges in the "C509 RDN Attributes" registry in the registry group "CBOR Encoded X.509 (C509)".
-
-The ranges [2^31, 2^32 -1] and [2^47, 2^48 -1] are reserved for PEN identifiers as in {{pen-id}}.
-
-## C509 CR Attributes Registry {#cratttype}
-
-This document updates the following ranges in the "C509 CR Attributes" registry in the registry group "CBOR Encoded X.509 (C509)".
-
-The ranges [2^31, 2^32 -1] and [2^47, 2^48 -1] are reserved for PEN identifiers as in {{pen-id}}.
 
 ## C509 Extensions Registry {#extype}
 
