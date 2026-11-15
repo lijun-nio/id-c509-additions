@@ -32,6 +32,7 @@ normative:
   RFC8949:
   RFC9090:
   RFC9277:
+  RFC9608:
   I-D.ietf-cose-cbor-encoded-cert:
   IANA.cbor-tags:
 
@@ -42,7 +43,7 @@ informative:
 
 This document defines additions to CBOR Encoded X.509 Certificates (C509).
 
-This document defines a new C509SubjectPublicKeyInfo type, a CBOR representation of the X.509 SubjectDirectoryAttributes extension, and a mechanism that allows organizations assigned a Private Enterprise Number (PEN) to define organization-specific integer identifiers without registering each identifier in the C509 RDN attribute type, attribute type, extension ID, certificate policy, or extended key usage registries.
+This document defines a new C509SubjectPublicKeyInfo type, CBOR representations of the X.509 SubjectDirectoryAttributes and No Revocation Available extensions, and a mechanism that allows organizations assigned a Private Enterprise Number (PEN) to define organization-specific integer identifiers without registering each identifier in the C509 RDN attribute type, attribute type, extension ID, certificate policy, or extended key usage registries.
 
 This document also defines textual encoding labels for C509 objects using the textual encoding conventions specified in RFC 7468.
 
@@ -63,6 +64,8 @@ This document updates and extends the C509 specification in the following areas.
 - Defines a new structure C509SubjectPublicKeyInfo which corresponds to SubjectPublicKeyInfo in X.509 {{Section 4.1 of RFC5280}}. This permits a C509 public key to be represented independently of a complete C509 certificate.
 
 - Defines the C509 representation of the X.509 SubjectDirectoryAttributes extension specified in {{Section 4.2.1.8 of RFC5280}}. The "C509 CR Attributes" registry is renamed to "C509 Attributes", which is a general registry for attributes, and is extended with entries for subject directory attributes.
+
+- Defines the C509 representation of the X.509 No Revocation Available extension specified in {{RFC9608}}.
 
 - Defines PEN-scoped identifiers. An organization that has been assigned a Private Enterprise Number (PEN) can assign integer values within its own namespace. Such identifiers can be used for RDN attribute types, attribute types, extension IDs, certificate policies, and extended key usages without requiring each identifier to be registered in a C509 IANA registry. Unlike values from the Private Use ranges of these registries, PEN-scoped identifiers are globally unique, so identifiers defined by different organizations do not collide.
 
@@ -175,6 +178,20 @@ The personal data attribute 'CountryOfCitizenship' is defined in {{RFC3739}} as 
 ### CountryOfResidence
 
 The personal data attribute 'CountryOfResidence' is defined in {{RFC3739}} as 'PrintableString'. In C509, the 'attributeValue' field has type CBOR text.
+
+## Extension No Revocation Available {#ext-noRevAvail}
+
+{{RFC9608}} defines the No Revocation Available (noRevAvail) extension, which indicates that the issuer does not provide revocation status information for the certificate. This document defines a C509 representation of that extension and registers the extension ID 40 for it (see {{extype}}). Since {{RFC9608}} requires this extension to be non-critical, the extensionID is encoded as the positive int 40.
+
+In X.509, the extension value is the DER encoding of NULL. In C509, 'extensionValue' is encoded as the CBOR simple value null (0xf6), in the same way as for the OCSP No Check extension in {{I-D.ietf-cose-cbor-encoded-cert}}:
+
+~~~~~~~~~~~ cddl
+NoRevAvail = null
+~~~~~~~~~~~
+{: sourcecode-name="c509additions.cddl"}
+{: #fig-NoRevAvail title="CDDL for NoRevAvail"}
+
+The rules in {{RFC9608}} for the use of this extension apply unchanged to C509 certificates.
 
 # PEN-Scoped Identifiers {#pen-id}
 
@@ -353,6 +370,10 @@ C509SubjectPublicKeyInfo carries the same information as the subject public key 
 
 The personal data attributes in {{ext-SubjectDirectoryAttributes}} (date of birth, place of birth, gender, country of citizenship, and country of residence) are personal data. Certificates are often public and can be sent in the clear, for example in protocols that do not encrypt the certificate exchange. Certification Authorities SHOULD include these attributes only when they are required by the application, and applications SHOULD consider the privacy impact of including them. The compact C509 encoding does not change the privacy properties of these attributes compared to X.509.
 
+## No Revocation Available {#sec-noRevAvail}
+
+The security considerations of {{RFC9608}} apply to C509 certificates that contain the No Revocation Available extension. The C509 encoding does not change the semantics of the extension.
+
 ## PEN-Scoped Identifiers {#sec-pen-id}
 
 A PEN-scoped identifier is meaningful only to parties that know the definition published by the organization to which the PEN is assigned. Different parties can therefore interpret the same identifier differently if they obtain the mapping from different sources or if the organization assigns an internal ID to more than one OID. An organization MUST NOT assign an internal ID to more than one OID, and it MUST NOT reassign an internal ID after it has been used.
@@ -440,7 +461,7 @@ This document updates the "C509 Extensions" registry in the registry group "CBOR
 
 > Values in the intervals [2^31, 2^32 - 1] and [2^47, 2^48 - 1] are PEN-scoped identifiers as specified in [[this document]]. They are not assigned by IANA.
 
-IANA is requested to add the following entry to the "C509 Extensions" registry:
+IANA is requested to add the following entries to the "C509 Extensions" registry:
 
 ~~~~~~~~~~~
 +-------+-----------------------------------------------------------+
@@ -453,8 +474,15 @@ IANA is requested to add the following entry to the "C509 Extensions" registry:
 |       | Comments:        RFC 5280                                 |
 |       | extensionValue:  SubjectDirectoryAttributes               |
 +-------+-----------------------------------------------------------+
+|    40 | Name:            No Revocation Available                  |
+|       | Identifiers:     noRevAvail                               |
+|       | OID:             2.5.29.56                                |
+|       | DER:             06 03 55 1D 38                           |
+|       | Comments:        RFC 9608                                 |
+|       | extensionValue:  NoRevAvail                               |
++-------+-----------------------------------------------------------+
 ~~~~~~~~~~~
-{: #fig-extype-additions title="Additional Entry in the C509 Extensions Registry"}
+{: #fig-extype-additions title="Additional Entries in the C509 Extensions Registry"}
 {: artwork-align="center"}
 
 ## C509 Certificate Policies Registry {#CP}
