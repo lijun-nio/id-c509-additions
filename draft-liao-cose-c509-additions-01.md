@@ -29,7 +29,6 @@ normative:
   RFC4648:
   RFC5280:
   RFC7468:
-  RFC8943:
   RFC8949:
   RFC9090:
   RFC9277:
@@ -47,7 +46,7 @@ This document defines a new C509SubjectPublicKeyInfo type, a CBOR representation
 
 This document also defines textual encoding labels for C509 objects using the textual encoding conventions specified in RFC 7468.
 
-This document updates the C509 specification by renaming the certification request attribute type to a general attribute type and by excluding the CBOR alternative tags from the compact encoding of a Name with a single common name.
+This document updates the C509 specification by renaming the certification request attribute type to a general attribute type.
 
 --- middle
 
@@ -59,7 +58,7 @@ The base C509 specification defines the public key as fields within the certific
 
 This document updates and extends the C509 specification in the following areas.
 
-- Updates {{I-D.ietf-cose-cbor-encoded-cert}}: the CDDL types CRAttributes and CRAttribute are renamed to Attributes and Attribute, so that they can be used outside certification requests, and a Name with a single common name whose value is tagged with a CBOR alternative tag is not encoded in the compact form (see {{updates}}).
+- Updates {{I-D.ietf-cose-cbor-encoded-cert}}: the CDDL types CRAttributes and CRAttribute are renamed to Attributes and Attribute, so that they can be used outside certification requests (see {{updates}}).
 
 - Defines a new structure C509SubjectPublicKeyInfo which corresponds to SubjectPublicKeyInfo in X.509 {{Section 4.1 of RFC5280}}. This permits a C509 public key to be represented independently of a complete C509 certificate.
 
@@ -110,24 +109,6 @@ Attribute = (( attributeType: int, attributeValue: Defined ) //
 
 The encoding and the semantics of the attributes are unchanged. The corresponding IANA registry is renamed from "C509 CR Attributes" to "C509 Attributes" (see {{attrtype}}).
 
-## Name with a Single Common Name {#updates-cn}
-
-{{I-D.ietf-cose-cbor-encoded-cert}} defines Name and SpecialText as follows:
-
-~~~~~~~~~~~ cddl
-Name = [ * RDNAttribute ] / SpecialText
-
-SpecialText = text / bytes / tag
-~~~~~~~~~~~
-
-If Name contains a single 'common name' attribute with attributeType = +1, it is encoded as just the SpecialText containing the attribute value.
-
-This document restricts this encoding: if the value of the single 'common name' attribute is a CBOR item tagged with one of the alternative tags defined in {{IANA.cbor-tags}}, i.e., tag 101 or a tag in the ranges 121 to 127 and 1280 to 1400, Name MUST NOT be encoded as just the SpecialText. In this case, Name is encoded as an array containing the single RDNAttribute, i.e., as `[ 1, value ]`.
-
-C509 structures use the alternative tags to distinguish alternatives of a value. A type such as `Name / #6.121(bytes)` relies on Name never being a 121-tagged item. This restriction guarantees that a Name is never encoded as an item tagged with an alternative tag. SpecialText values in other positions, for example as the attributeValue of an RDNAttribute, are not restricted.
-
-A decoder that encounters a Name encoded as an item tagged with an alternative tag MUST NOT interpret it as a single 'common name' attribute.
-
 # C509 Public Key {#publickey}
 
 This document defines the following reusable C509 subject public key type:
@@ -156,7 +137,7 @@ X.509 defines the SubjectDirectoryAttributes extension in {{Section 4.2.1.8 of R
 ~~~~~~~~~~~ cddl
 SubjectDirectoryAttributes = [ + Attribute ]
 
-DateOfBirth = #6.100(int)
+DateOfBirth = int
 
 PlaceOfBirth = text / #6.121(text)
 ~~~~~~~~~~~
@@ -175,7 +156,7 @@ If 'attributeType' is encoded as a CBOR int, 'attributeValue' carries exactly on
 
 ### DateOfBirth
 
-The personal data attribute 'DateOfBirth' is defined in {{RFC3739}} as 'GeneralizedTime'. {{RFC3739}} specifies that the value SHOULD specify GMT 12.00.00 (noon), for example "19590927120000Z". In C509, the 'attributeValue' field has type DateOfBirth: the date is encoded as the number of days since 1970-01-01, as a CBOR int tagged with number 100 {{RFC8943}}. Dates before 1970-01-01 are encoded as negative integers. For example, September 27, 1959 is encoded as 100(-3749).
+The personal data attribute 'DateOfBirth' is defined in {{RFC3739}} as 'GeneralizedTime'. {{RFC3739}} specifies that the value SHOULD specify GMT 12.00.00 (noon), for example "19590927120000Z". In C509, the 'attributeValue' field has type DateOfBirth: the date is encoded as a CBOR int containing the number of days since 1970-01-01. Dates before 1970-01-01 are encoded as negative integers. For example, September 27, 1959 is encoded as -3749.
 
 When a C509 DateOfBirth value is converted to X.509, it is encoded as the GeneralizedTime value "YYYYMMDD120000Z". In a C509 certificate or certification request that is re-encoded from X.509 (type 3), a DateOfBirth attribute whose value does not have this form MUST be encoded with an unwrapped CBOR OID attributeType, followed by the DER-encoded values.
 
