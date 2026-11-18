@@ -43,7 +43,7 @@ informative:
 
 This document defines additions to CBOR Encoded X.509 Certificates (C509).
 
-This document defines a new C509SubjectPublicKeyInfo type, CBOR representations of the X.509 SubjectDirectoryAttributes and No Revocation Available extensions, and a mechanism that allows organizations assigned a Private Enterprise Number (PEN) to define organization-specific integer identifiers without registering each identifier in the C509 RDN attribute type, attribute type, extension ID, certificate policy, or extended key usage registries.
+This document defines a new C509SubjectPublicKeyInfo type, CBOR representations of the X.509 SubjectDirectoryAttributes and No Revocation Available extensions, additional extended key usage identifiers, and a mechanism that allows organizations assigned a Private Enterprise Number (PEN) to define organization-specific integer identifiers without registering each identifier in the C509 RDN attribute type, attribute type, extension ID, certificate policy, or extended key usage registries.
 
 This document also defines textual encoding labels for C509 objects using the textual encoding conventions specified in RFC 7468.
 
@@ -66,6 +66,8 @@ This document updates and extends the C509 specification in the following areas.
 - Defines the C509 representation of the X.509 SubjectDirectoryAttributes extension specified in {{Section 4.2.1.8 of RFC5280}}. The "C509 CR Attributes" registry is renamed to "C509 Attributes", which is a general registry for attributes, and is extended with entries for subject directory attributes.
 
 - Defines the C509 representation of the X.509 No Revocation Available extension specified in {{RFC9608}}.
+
+- Registers additional extended key usages in the "C509 Extended Key Usages" registry, for example id-kp-ipsecIKE for use with IKEv2 (see {{EKU}}).
 
 - Defines PEN-scoped identifiers. An organization that has been assigned a Private Enterprise Number (PEN) can assign integer values within its own namespace. Such identifiers can be used for RDN attribute types, attribute types, extension IDs, certificate policies, and extended key usages without requiring each identifier to be registered in a C509 IANA registry. Unlike values from the Private Use ranges of these registries, PEN-scoped identifiers are globally unique, so identifiers defined by different organizations do not collide.
 
@@ -496,6 +498,118 @@ This document updates the "C509 Certificate Policies" registry in the registry g
 This document updates the "C509 Extended Key Usages" registry in the registry group "CBOR Encoded X.509 (C509)" defined in {{I-D.ietf-cose-cbor-encoded-cert}}. The intervals [2^31, 2^32 - 1] and [2^47, 2^48 - 1], which are part of the interval [65536, 2^63 - 1] reserved for Future Use, are reserved for PEN-scoped identifiers as specified in {{pen-id}}. IANA is requested to add the following note to the registry:
 
 > Values in the intervals [2^31, 2^32 - 1] and [2^47, 2^48 - 1] are PEN-scoped identifiers as specified in [[this document]]. They are not assigned by IANA.
+
+IANA is requested to add the following entries to the "C509 Extended Key Usages" registry:
+
+~~~~~~~~~~~
++-------+--------------------------------------------------------------+
+| Value | Extended Key Usage                                           |
++=======+==============================================================+
+|    19 | Name:            IPsec IKE                                   |
+|       | Identifiers:     id-kp-ipsecIKE                              |
+|       | OID:             1.3.6.1.5.5.7.3.17                          |
+|       | DER:             06 08 2B 06 01 05 05 07 03 11               |
+|       | Comments:        RFC 4945                                    |
++-------+--------------------------------------------------------------+
+|    21 | Name:            IP Security IKE Intermediate                |
+|       | Identifiers:     iKEIntermediate                             |
+|       | OID:             1.3.6.1.5.5.8.2.2                           |
+|       | DER:             06 08 2B 06 01 05 05 08 02 02               |
+|       | Comments:        Microsoft                                   |
++-------+--------------------------------------------------------------+
+|    22 | Name:            Document Signing                            |
+|       | Identifiers:     id-kp-documentSigning                       |
+|       | OID:             1.3.6.1.5.5.7.3.36                          |
+|       | DER:             06 08 2B 06 01 05 05 07 03 24               |
+|       | Comments:        RFC 9336                                    |
++-------+--------------------------------------------------------------+
+|    24 | Name:            EAP over LAN                                |
+|       | Identifiers:     id-kp-eapOverLAN                            |
+|       | OID:             1.3.6.1.5.5.7.3.14                          |
+|       | DER:             06 08 2B 06 01 05 05 07 03 0E               |
+|       | Comments:        RFC 4334                                    |
++-------+--------------------------------------------------------------+
+|    25 | Name:            CAPWAP Access Controller                    |
+|       | Identifiers:     id-kp-capwapAC                              |
+|       | OID:             1.3.6.1.5.5.7.3.18                          |
+|       | DER:             06 08 2B 06 01 05 05 07 03 12               |
+|       | Comments:        RFC 5415                                    |
++-------+--------------------------------------------------------------+
+|    26 | Name:            CAPWAP Wireless Termination Point           |
+|       | Identifiers:     id-kp-capwapWTP                             |
+|       | OID:             1.3.6.1.5.5.7.3.19                          |
+|       | DER:             06 08 2B 06 01 05 05 07 03 13               |
+|       | Comments:        RFC 5415                                    |
++-------+--------------------------------------------------------------+
+|    27 | Name:            BGPsec Router                               |
+|       | Identifiers:     id-kp-bgpsec-router                         |
+|       | OID:             1.3.6.1.5.5.7.3.30                          |
+|       | DER:             06 08 2B 06 01 05 05 07 03 1E               |
+|       | Comments:        RFC 8209                                    |
++-------+--------------------------------------------------------------+
+|    28 | Name:            RPC over TLS Client                         |
+|       | Identifiers:     id-kp-rpcTLSClient                          |
+|       | OID:             1.3.6.1.5.5.7.3.33                          |
+|       | DER:             06 08 2B 06 01 05 05 07 03 21               |
+|       | Comments:        RFC 9289                                    |
++-------+--------------------------------------------------------------+
+|    29 | Name:            RPC over TLS Server                         |
+|       | Identifiers:     id-kp-rpcTLSServer                          |
+|       | OID:             1.3.6.1.5.5.7.3.34                          |
+|       | DER:             06 08 2B 06 01 05 05 07 03 22               |
+|       | Comments:        RFC 9289                                    |
++-------+--------------------------------------------------------------+
+|    30 | Name:            JSON Web Token Signing                      |
+|       | Identifiers:     id-kp-jwt                                   |
+|       | OID:             1.3.6.1.5.5.7.3.37                          |
+|       | DER:             06 08 2B 06 01 05 05 07 03 25               |
+|       | Comments:        RFC 9509                                    |
++-------+--------------------------------------------------------------+
+|    31 | Name:            HTTP Content Encryption                     |
+|       | Identifiers:     id-kp-httpContentEncrypt                    |
+|       | OID:             1.3.6.1.5.5.7.3.38                          |
+|       | DER:             06 08 2B 06 01 05 05 07 03 26               |
+|       | Comments:        RFC 9509                                    |
++-------+--------------------------------------------------------------+
+|    32 | Name:            OAuth Access Token Signing                  |
+|       | Identifiers:     id-kp-oauthAccessTokenSigning               |
+|       | OID:             1.3.6.1.5.5.7.3.39                          |
+|       | DER:             06 08 2B 06 01 05 05 07 03 27               |
+|       | Comments:        RFC 9509                                    |
++-------+--------------------------------------------------------------+
+|    33 | Name:            Configuration Signing                       |
+|       | Identifiers:     id-kp-configSigning                         |
+|       | OID:             1.3.6.1.5.5.7.3.41                          |
+|       | DER:             06 08 2B 06 01 05 05 07 03 29               |
+|       | Comments:        RFC 9809                                    |
++-------+--------------------------------------------------------------+
+|    34 | Name:            Trust Anchor Configuration Signing          |
+|       | Identifiers:     id-kp-trustAnchorConfigSigning              |
+|       | OID:             1.3.6.1.5.5.7.3.42                          |
+|       | DER:             06 08 2B 06 01 05 05 07 03 2A               |
+|       | Comments:        RFC 9809                                    |
++-------+--------------------------------------------------------------+
+|    35 | Name:            Update Package Signing                      |
+|       | Identifiers:     id-kp-updatePackageSigning                  |
+|       | OID:             1.3.6.1.5.5.7.3.43                          |
+|       | DER:             06 08 2B 06 01 05 05 07 03 2B               |
+|       | Comments:        RFC 9809                                    |
++-------+--------------------------------------------------------------+
+|    36 | Name:            Safety Communication                        |
+|       | Identifiers:     id-kp-safetyCommunication                   |
+|       | OID:             1.3.6.1.5.5.7.3.44                          |
+|       | DER:             06 08 2B 06 01 05 05 07 03 2C               |
+|       | Comments:        RFC 9809                                    |
++-------+--------------------------------------------------------------+
+|    37 | Name:            OAuth Status List Signing                   |
+|       | Identifiers:     id-kp-oauthStatusSigning                    |
+|       | OID:             1.3.6.1.5.5.7.3.45                          |
+|       | DER:             06 08 2B 06 01 05 05 07 03 2D               |
+|       | Comments:        draft-ietf-oauth-status-list                |
++-------+--------------------------------------------------------------+
+~~~~~~~~~~~
+{: #fig-eku-additions title="Additional Entries in the C509 Extended Key Usages Registry"}
+{: artwork-align="center"}
 
 ## CoAP Content-Formats Registry {#content-format}
 
