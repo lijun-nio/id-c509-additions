@@ -135,7 +135,7 @@ In particular, algorithm-specific C509 encodings defined by {{I-D.ietf-cose-cbor
 
 ## Extension Subject Directory Attributes {#ext-SubjectDirectoryAttributes}
 
-X.509 defines the SubjectDirectoryAttributes extension in {{Section 4.2.1.8 of RFC5280}}. This document defines a C509 representation of that extension and registers the extension ID 39 for it (see {{extype}}). Since {{RFC5280}} requires this extension to be non-critical, the extensionID is encoded as the positive int 39. The extension value is represented as SubjectDirectoryAttributes:
+X.509 defines the SubjectDirectoryAttributes extension in {{Section 4.2.1.8 of RFC5280}}. This document defines a C509 representation of that extension and registers the extension ID 24 for it (see {{extype}}). Since {{RFC5280}} requires this extension to be non-critical, the extensionID is encoded as the positive int 24. The extension value is represented as SubjectDirectoryAttributes:
 
 ~~~~~~~~~~~ cddl
 SubjectDirectoryAttributes = [ + Attribute ]
@@ -181,7 +181,7 @@ The personal data attribute 'CountryOfResidence' is defined in {{RFC3739}} as 'P
 
 ## Extension No Revocation Available {#ext-noRevAvail}
 
-{{RFC9608}} defines the No Revocation Available (noRevAvail) extension, which indicates that the issuer does not provide revocation status information for the certificate. This document defines a C509 representation of that extension and registers the extension ID 40 for it (see {{extype}}). Since {{RFC9608}} requires this extension to be non-critical, the extensionID is encoded as the positive int 40.
+{{RFC9608}} defines the No Revocation Available (noRevAvail) extension, which indicates that the issuer does not provide revocation status information for the certificate. This document defines a C509 representation of that extension and registers the extension ID 39 for it (see {{extype}}). Since {{RFC9608}} requires this extension to be non-critical, the extensionID is encoded as the positive int 39.
 
 In X.509, the extension value is the DER encoding of NULL. In C509, 'extensionValue' is encoded as the CBOR simple value null (0xf6), in the same way as for the OCSP No Check extension in {{I-D.ietf-cose-cbor-encoded-cert}}:
 
@@ -467,14 +467,14 @@ IANA is requested to add the following entries to the "C509 Extensions" registry
 +-------+-----------------------------------------------------------+
 | Value | Extension                                                 |
 +=======+===========================================================+
-|    39 | Name:            Subject Directory Attributes             |
+|    24 | Name:            Subject Directory Attributes             |
 |       | Identifiers:     subjectDirectoryAttributes               |
 |       | OID:             2.5.29.9                                 |
 |       | DER:             06 03 55 1D 09                           |
 |       | Comments:        RFC 5280                                 |
 |       | extensionValue:  SubjectDirectoryAttributes               |
 +-------+-----------------------------------------------------------+
-|    40 | Name:            No Revocation Available                  |
+|    39 | Name:            No Revocation Available                  |
 |       | Identifiers:     noRevAvail                               |
 |       | OID:             2.5.29.56                                |
 |       | DER:             06 03 55 1D 38                           |
