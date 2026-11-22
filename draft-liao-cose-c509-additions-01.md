@@ -64,6 +64,8 @@ This document updates and extends the C509 specification in the following areas.
 
 - Updates {{I-D.ietf-cose-cbor-encoded-cert}}: the CDDL types CRAttributes and CRAttribute are renamed to Attributes and Attribute, so that they can be used outside certification requests (see {{updates}}).
 
+  [[RFC Editor: please add "Updates: RFC XXXX" to the header of this document, where XXXX is the RFC number assigned to {{I-D.ietf-cose-cbor-encoded-cert}}, and remove this note.]]
+
 - Defines a new structure C509SubjectPublicKeyInfo which corresponds to SubjectPublicKeyInfo in X.509 {{Section 4.1 of RFC5280}}. This permits a C509 public key to be represented independently of a complete C509 certificate.
 
 - Defines the C509 representation of the X.509 SubjectDirectoryAttributes extension specified in {{Section 4.2.1.8 of RFC5280}}. The "C509 CR Attributes" registry is renamed to "C509 Attributes", which is a general registry for attributes, and is extended with entries for subject directory attributes.
