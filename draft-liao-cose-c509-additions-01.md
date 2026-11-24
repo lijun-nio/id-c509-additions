@@ -30,6 +30,7 @@ normative:
   RFC7468:
   RFC9090:
   RFC9277:
+  RFC9371:
   RFC9608:
   I-D.ietf-cose-cbor-encoded-cert:
   IANA.cbor-tags:
@@ -41,6 +42,12 @@ normative:
 
 informative:
   RFC6838:
+  I-D.liao-cose-c509-revocation:
+  IANA.SMI:
+    title: Structure of Management Information (SMI) Numbers (MIB Module Registrations)
+    author:
+      org: IANA
+    target: https://www.iana.org/assignments/smi-numbers/
 
 --- abstract
 
@@ -117,7 +124,12 @@ Attribute = (( attributeType: int, attributeValue: Defined ) //
 {: sourcecode-name="c509additions.cddl"}
 {: #fig-AttributeCDDL title="Updated CDDL for TBSCertificationRequest and Attribute"}
 
-The encoding and the semantics of the attributes are unchanged. The corresponding IANA registry is renamed from "C509 CR Attributes" to "C509 Attributes" (see {{attrtype}}).
+The corresponding IANA registry is renamed from "C509 CR Attributes" to "C509 Attributes" (see {{attrtype}}). This document also constrains the encoding of attributes as follows.
+
+If 'attributeType' is encoded as a CBOR int, 'attributeValue' carries exactly one AttributeValue. An attribute with more than one value is encoded as follows:
+
+- In a C509 certificate or certification request that is re-encoded from X.509 (type 3), the attribute MUST be encoded with an unwrapped CBOR OID 'attributeType', followed by the DER-encoded 'values'.
+- In a natively signed C509 certificate or certification request (type 2), each value is encoded as a separate attribute with the same 'attributeType'. For example, {{RFC3739}} recommends that multiple countries of citizenship or residence are specified through separate, single-valued attributes.
 
 # C509 Public Key {#publickey}
 
@@ -138,13 +150,13 @@ The subjectPublicKeyAlgorithm field has the same encoding and semantics as the s
 
 In particular, algorithm-specific C509 encodings defined by {{I-D.ietf-cose-cbor-encoded-cert}} apply equally when the public key is represented using C509SubjectPublicKeyInfo. For example, the optimized RSA encoding and elliptic-curve public key encoding apply to C509SubjectPublicKeyInfo.
 
-An elliptic curve public key is encoded as in a natively signed C509 certificate (type 2). The leading bytes 0xfe and 0xfd MUST NOT be used.
+An elliptic curve public key is encoded as in a natively signed C509 certificate (type 2). The leading bytes 0xfe and 0xfd MUST NOT be used. When a Weierstrass-form elliptic curve public key is converted to an X.509 SubjectPublicKeyInfo, a point encoded with leading byte 0x02 or 0x03 is encoded as a compressed point, and a point encoded with leading byte 0x04 is encoded as an uncompressed point.
 
 # Extensions {#extensions}
 
 ## Extension Subject Directory Attributes {#ext-SubjectDirectoryAttributes}
 
-X.509 defines the SubjectDirectoryAttributes extension in {{Section 4.2.1.8 of RFC5280}}. This document defines a C509 representation of that extension and registers the extension ID 24 for it (see {{extype}}). Since {{RFC5280}} requires this extension to be non-critical, the extensionID is encoded as the positive int 24. The extension value is represented as SubjectDirectoryAttributes:
+X.509 defines the SubjectDirectoryAttributes extension in {{Section 4.2.1.8 of RFC5280}}. This document defines a C509 representation of that extension and registers the extension ID 24 for it (see {{extype}}). {{RFC5280}} requires this extension to be non-critical, so the extensionID is encoded as the positive int 24 in conforming certificates. When re-encoding an X.509 certificate that marks this extension critical as a type 3 C509 certificate, the extensionID is encoded as -24 to preserve the criticality. The extension value is represented as SubjectDirectoryAttributes:
 
 ~~~~~~~~~~~ cddl
 SubjectDirectoryAttributes = [ + Attribute ]
@@ -162,11 +174,6 @@ Attribute is defined in {{updates-attribute}}. Each 'attributeType' is encoded e
 
 - If 'attributeType' is encoded as a CBOR int, it is followed by a CBOR item of any type other than undefined. The specific type of the item is determined by 'attributeType'.
 - If 'attributeType' is encoded as an unwrapped CBOR OID, it is followed by the DER-encoded 'values' (which is SET OF AttributeValue) encoded as a CBOR byte string.
-
-If 'attributeType' is encoded as a CBOR int, 'attributeValue' carries exactly one AttributeValue. An attribute with more than one value is encoded as follows:
-
-- In a C509 certificate that is re-encoded from X.509 (type 3), the attribute MUST be encoded with an unwrapped CBOR OID 'attributeType', followed by the DER-encoded 'values'.
-- In a natively signed C509 certificate (type 2), each value is encoded as a separate attribute with the same 'attributeType'. This is in line with {{RFC3739}}, which recommends that multiple countries of citizenship or residence are specified through separate, single-valued attributes.
 
 The subsections below constrain the values that can be carried with an int 'attributeType'. In a C509 certificate or certification request that is re-encoded from X.509 (type 3), an attribute with a value that does not satisfy these constraints MUST be encoded with an unwrapped CBOR OID 'attributeType', followed by the DER-encoded 'values'.
 
@@ -192,9 +199,11 @@ The personal data attribute 'CountryOfCitizenship' is defined in {{RFC3739}} as 
 
 The personal data attribute 'CountryOfResidence' is defined in {{RFC3739}} as 'PrintableString (SIZE(2))', containing an ISO 3166 country code. In C509, the 'attributeValue' field has type CBOR text, which MUST consist of exactly two characters from the PrintableString character set.
 
+When a C509 Gender, CountryOfCitizenship, or CountryOfResidence value is converted to X.509, it is encoded as a PrintableString. In a C509 certificate or certification request that is re-encoded from X.509 (type 3), an attribute of any of these types whose value is not a PrintableString MUST be encoded with an unwrapped CBOR OID 'attributeType', followed by the DER-encoded 'values'.
+
 ## Extension No Revocation Available {#ext-noRevAvail}
 
-{{RFC9608}} defines the No Revocation Available (noRevAvail) extension, which indicates that the issuer does not provide revocation status information for the certificate. This document defines a C509 representation of that extension and registers the extension ID 39 for it (see {{extype}}). Since {{RFC9608}} requires this extension to be non-critical, the extensionID is encoded as the positive int 39.
+{{RFC9608}} defines the No Revocation Available (noRevAvail) extension, which indicates that the issuer does not provide revocation status information for the certificate. This document defines a C509 representation of that extension and registers the extension ID 39 for it (see {{extype}}). {{RFC9608}} requires this extension to be non-critical, so the extensionID is encoded as the positive int 39 in conforming certificates. When re-encoding an X.509 certificate that marks this extension critical as a type 3 C509 certificate, the extensionID is encoded as -39 to preserve the criticality.
 
 In X.509, the extension value is the DER encoding of NULL. In C509, 'extensionValue' is encoded as the CBOR simple value null (0xf6), in the same way as for the OCSP No Check extension in {{I-D.ietf-cose-cbor-encoded-cert}}:
 
@@ -212,9 +221,9 @@ The rules in {{RFC9608}} for the use of this extension apply unchanged to C509 c
 
 An organization may also need identifiers that are meaningful only within its own ecosystem. Requiring each such identifier to be allocated from an IANA registry is unnecessary when the organization already has a globally unique namespace through a Private Enterprise Number {{IANA.PEN}}.
 
-This document therefore reserves two intervals for PEN-scoped identifiers for RDN attributes, attributes (see {{attrtype}}), extensions, extended key usages, and certificate policies. A PEN-scoped identifier is constructed from a PEN and an internal ID assigned by the organization to which the PEN is assigned.
+This document therefore reserves two intervals for PEN-scoped identifiers for RDN attributes, attributes (see {{attrtype}}), extensions, extended key usages, and certificate policies. A PEN-scoped identifier is constructed from the numeric component of a PEN and an internal ID assigned by the organization to which the PEN is assigned. As specified in {{Section 3 of RFC9371}}, the numeric component ranges from 0 to 2^32 - 1, but 0 and 2^32 - 1 are reserved and MUST NOT be used to construct PEN-scoped identifiers.
 
-- Short form, in the interval [2^31, 2^32 - 1]: for a PEN in [0, 2^21 - 1] and an internal ID in [0, 2^10 - 1], the identifier is
+- Short form, in the interval [2^31, 2^32 - 1]: for a PEN in [1, 2^21 - 1] and an internal ID in [0, 2^10 - 1], the identifier is
 
   ~~~
   2^31 + PEN * 2^10 + internal ID
@@ -222,7 +231,7 @@ This document therefore reserves two intervals for PEN-scoped identifiers for RD
 
   i.e., the bit 1 followed by the 21-bit PEN and the 10-bit internal ID. It is encoded in 5 bytes as a CBOR int.
 
-- Long form, in the interval [2^47, 2^48 - 1]: for a PEN in [0, 2^32 - 1] and an internal ID in [0, 2^15 - 1], the identifier is
+- Long form, in the interval [2^47, 2^48 - 1]: for a PEN in [1, 2^32 - 2] and an internal ID in [0, 2^15 - 1], the identifier is
 
   ~~~
   2^47 + PEN * 2^15 + internal ID
@@ -230,15 +239,17 @@ This document therefore reserves two intervals for PEN-scoped identifiers for RD
 
   i.e., the bit 1 followed by the 32-bit PEN and the 15-bit internal ID. It is encoded in 9 bytes as a CBOR int.
 
-If a PEN-scoped identifier can be represented in the short form, it MUST be encoded in the short form. The long form MUST only be used if the PEN is greater than or equal to 2^21 or the internal ID is greater than or equal to 2^10. This ensures that each PEN-scoped identifier has exactly one encoding. A decoder MUST treat a long-form identifier that could have been encoded in the short form as invalid.
+If a PEN-scoped identifier can be represented in the short form, it MUST be encoded in the short form. The long form MUST only be used if the PEN is greater than or equal to 2^21 or the internal ID is greater than or equal to 2^10. This ensures that each PEN-scoped identifier has exactly one encoding. A decoder MUST reject a structure containing a long-form identifier that could have been encoded in the short form.
 
-PEN-scoped identifiers MUST NOT be used in C509 certificates and certification requests that are re-encoded from X.509 (type 3). In such structures, an object identifier under the arc of a PEN is encoded with the ~oid form. A decoder MUST treat a type 3 structure that contains a PEN-scoped identifier as invalid. This keeps the encoding of a re-encoded structure independent of whether the encoder knows the definitions of the organization, and allows any party to reconstruct its DER encoding.
+PEN-scoped identifiers MAY be used in natively signed C509 certificates and certification requests (type 2), and in C509CertificationRequestTemplate. A template that requires a PEN-scoped identifier can only be satisfied by a type 2 certification request. PEN-scoped identifiers MAY also be used in C509 CRL and C509 OCSP structures defined in {{I-D.liao-cose-c509-revocation}} where those structures use the C509 registries listed above.
+
+PEN-scoped identifiers MUST NOT be used in C509 certificates and certification requests that are re-encoded from X.509 (type 3). In such structures, an object identifier under the arc of a PEN for which no integer is registered in the applicable C509 registry is encoded with the ~oid form. If an integer is registered, the encoding follows the rules of {{I-D.ietf-cose-cbor-encoded-cert}} and this document. A decoder MUST treat a type 3 structure that contains a PEN-scoped identifier as invalid. This keeps the encoding of a re-encoded structure independent of whether the encoder knows the definitions of the organization, and allows any party to reconstruct its DER encoding.
 
 ## Sign of PEN-Scoped Identifiers {#pen-id-sign}
 
 The constructions above determine the absolute value of a PEN-scoped identifier. Where {{I-D.ietf-cose-cbor-encoded-cert}} uses the sign of an integer identifier to carry additional information, the same rules apply to PEN-scoped identifiers:
 
-- For RDN attributes, PEN-scoped identifiers are used only in natively signed C509 certificates, in which the 'attributeType' int is non-negative. A PEN-scoped RDN 'attributeType' is therefore always positive.
+- For RDN attributes, a PEN-scoped 'attributeType' is always positive.
 
 - For extensions, the sign indicates criticality: critical extensions are encoded with a negative sign and non-critical extensions with a positive sign. For example, a critical extension with the PEN-scoped identifier v is encoded as -v.
 
@@ -248,13 +259,15 @@ In registries where the sign of an identifier carries no additional information,
 
 A PEN-scoped identifier does not encode the object identifier (OID) that it stands for, and the mapping is not recorded in an IANA registry.
 
-The item that follows a PEN-scoped identifier, for example the 'extensionValue' after a PEN-scoped 'extensionID' or the 'attributeValue' after a PEN-scoped 'attributeType', is a native CBOR item. Its type and semantics are defined by the organization to which the PEN is assigned. That organization also defines the mapping of the identifier to an OID and the conversion between the CBOR item and the corresponding X.509 (DER) value. This document places no constraints on these definitions.
+The item that follows a PEN-scoped identifier, for example the 'extensionValue' after a PEN-scoped 'extensionID' or the 'attributeValue' after a PEN-scoped 'attributeType', is a native CBOR item. Its type and semantics are defined by the organization to which the PEN is assigned, subject to the CDDL of the containing structure. In certificates and certification requests, the value of an RDN attribute MUST be SpecialText, and the value of an extension or Attribute MUST be Defined. In certification request templates, undefined may be used where permitted by the template CDDL. That organization also defines the mapping of the identifier to an OID and the conversion between the CBOR item and the corresponding X.509 (DER) value.
 
-Since PEN-scoped identifiers are used only in natively signed C509 certificates and certification requests (type 2), whose signature is calculated over the CBOR encoding, no OID mapping or value conversion is needed to verify the signature. A relying party still needs to know the definitions of a PEN-scoped identifier to process the item it identifies.
+When a signature is calculated over CBOR-encoded data containing a PEN-scoped identifier, no OID mapping or value conversion is needed to verify the signature. A relying party still needs to know the definitions of a PEN-scoped identifier to process the item it identifies.
 
 # Textual Encoding (PEM) {#pem}
 
 This section defines textual (PEM) encodings for C509 structures, following the conventions of {{RFC7468}}. The textual encodings use base64-encoded binary data enclosed between "-----BEGIN LABEL-----" and "-----END LABEL-----" lines and carry CBOR-encoded C509 objects rather than DER-encoded ASN.1 objects.
+
+This document does not define a PEM label for C509CertificationRequestTemplate.
 
 ## General Rules {#pem-general-rules}
 
@@ -510,7 +523,7 @@ This document updates the "C509 Extended Key Usages" registry in the registry gr
 
 > Values in the intervals [2^31, 2^32 - 1] and [2^47, 2^48 - 1] are PEN-scoped identifiers as specified in [[this document]]. They are not assigned by IANA.
 
-IANA is requested to add the following entries to the "C509 Extended Key Usages" registry:
+IANA is requested to add the following entries to the "C509 Extended Key Usages" registry. The iKEIntermediate OID is listed in the SMI Security for Mechanism IPSec Certificate Usage Codes registry in {{IANA.SMI}}.
 
 ~~~~~~~~~~~
 +-------+--------------------------------------------------------------+
@@ -526,7 +539,7 @@ IANA is requested to add the following entries to the "C509 Extended Key Usages"
 |       | Identifiers:     iKEIntermediate                             |
 |       | OID:             1.3.6.1.5.5.8.2.2                           |
 |       | DER:             06 08 2B 06 01 05 05 08 02 02               |
-|       | Comments:        Microsoft                                   |
+|       | Comments:        IANA SMI Numbers                            |
 +-------+--------------------------------------------------------------+
 |    22 | Name:            Document Signing                            |
 |       | Identifiers:     id-kp-documentSigning                       |
@@ -616,7 +629,7 @@ IANA is requested to add the following entries to the "C509 Extended Key Usages"
 |       | Identifiers:     id-kp-oauthStatusSigning                    |
 |       | OID:             1.3.6.1.5.5.7.3.45                          |
 |       | DER:             06 08 2B 06 01 05 05 07 03 2D               |
-|       | Comments:        draft-ietf-oauth-status-list                |
+|       | Comments:        RFC-for-draft-ietf-oauth-status-list        |
 +-------+--------------------------------------------------------------+
 ~~~~~~~~~~~
 {: #fig-eku-additions title="Additional Entries in the C509 Extended Key Usages Registry"}
