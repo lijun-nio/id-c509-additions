@@ -53,17 +53,17 @@ informative:
 
 This document defines additions to CBOR Encoded X.509 Certificates (C509).
 
-This document defines a new C509SubjectPublicKeyInfo type, CBOR representations of the X.509 SubjectDirectoryAttributes and No Revocation Available extensions, additional extended key usage identifiers, and a mechanism that allows organizations assigned a Private Enterprise Number (PEN) to define organization-specific integer identifiers without registering each identifier in the C509 RDN attribute type, attribute type, extension ID, certificate policy, or extended key usage registries.
+This document defines a new C509SubjectPublicKeyInfo type, CBOR representations of the X.509 SubjectDirectoryAttributes and No Revocation Available extensions, additional extended key usage identifiers, and a mechanism that allows organizations assigned a Private Enterprise Number (PEN) to define organization-specific integer identifiers without registering each identifier in the "C509 RDN Attributes", "C509 Attributes", "C509 Extensions", "C509 Certificate Policies", or "C509 Extended Key Usages" registries.
 
 This document also defines textual encoding labels for C509 objects using the textual encoding conventions specified in RFC 7468.
 
-This document updates the C509 specification by renaming the certification request attribute type to a general attribute type.
+This document updates the C509 specification by renaming the certification request attribute type to a general attribute type and the "C509 CR Attributes" registry to "C509 Attributes".
 
 --- middle
 
 # Introduction {#intro}
 
-{{I-D.ietf-cose-cbor-encoded-cert}} defines C509 certificate structure, a compact CBOR encoding of X.509 certificates. C509 supports a large subset of the X.509 certificate profile defined in {{RFC5280}} and is designed for use in constrained environments as well as general certificate-based protocols.
+{{I-D.ietf-cose-cbor-encoded-cert}} defines the C509 certificate structure, a compact CBOR encoding of X.509 certificates. C509 supports a large subset of the X.509 certificate profile defined in {{RFC5280}} and is designed for use in constrained environments as well as general certificate-based protocols.
 
 The base C509 specification defines the public key as fields within the certificate structure. It also defines compact integer identifiers for selected X.509 RDN attribute types, certification request (CR) attribute types, extension IDs, certificate policies, and extended key usages.
 
@@ -73,7 +73,7 @@ This document updates and extends the C509 specification in the following areas.
 
   [[RFC Editor: please add "Updates: RFC XXXX" to the header of this document, where XXXX is the RFC number assigned to {{I-D.ietf-cose-cbor-encoded-cert}}, and remove this note.]]
 
-- Defines a new structure C509SubjectPublicKeyInfo which corresponds to SubjectPublicKeyInfo in X.509 {{Section 4.1 of RFC5280}}. This permits a C509 public key to be represented independently of a complete C509 certificate.
+- Defines a new structure C509SubjectPublicKeyInfo which corresponds to SubjectPublicKeyInfo in X.509 (see {{Section 4.1 of RFC5280}}). This permits a C509 public key to be represented independently of a complete C509 certificate.
 
 - Defines the C509 representation of the X.509 SubjectDirectoryAttributes extension specified in {{Section 4.2.1.8 of RFC5280}}. The "C509 CR Attributes" registry is renamed to "C509 Attributes", which is a general registry for attributes, and is extended with entries for subject directory attributes.
 
@@ -129,7 +129,7 @@ The corresponding IANA registry is renamed from "C509 CR Attributes" to "C509 At
 If 'attributeType' is encoded as a CBOR int, 'attributeValue' carries exactly one AttributeValue. An attribute with more than one value is encoded as follows:
 
 - In a C509 certificate or certification request that is re-encoded from X.509 (type 3), the attribute MUST be encoded with an unwrapped CBOR OID 'attributeType', followed by the DER-encoded 'values'.
-- In a natively signed C509 certificate or certification request (type 2), each value is encoded as a separate attribute with the same 'attributeType'. For example, {{RFC3739}} recommends that multiple countries of citizenship or residence are specified through separate, single-valued attributes.
+- In a natively signed C509 certificate or certification request (type 2), each value is encoded as a separate attribute with the same 'attributeType'. For example, {{RFC3739}} recommends that multiple countries of citizenship or residence be specified through separate, single-valued attributes.
 
 # C509 Public Key {#publickey}
 
@@ -137,18 +137,18 @@ This document defines the following reusable C509 subject public key type:
 
 ~~~~~~~~~~~ cddl
 C509SubjectPublicKeyInfo = [
-  subjectPublicKeyAlgorithm : AlgorithmIdentifier,
-  subjectPublicKey          : Defined
+  subjectPublicKeyAlgorithm: AlgorithmIdentifier,
+  subjectPublicKey:          Defined
 ]
 ~~~~~~~~~~~
 {: sourcecode-name="c509additions.cddl"}
 {: #fig-C509SubjectPublicKeyInfoCDDL title="CDDL for C509SubjectPublicKeyInfo"}
 
-The C509SubjectPublicKeyInfo item is served with the application/cose-c509-pubkey+cbor media type, see {{cose-c509-pubkey}}, with corresponding CoAP Content-Format defined in {{content-format}}. A stored file format is defined with "magic number" TBD2 using the reserved CBOR tag 55799 and the Content-Format TBD1, enveloped as described in {{Section 2.2 of RFC9277}}.
+The C509SubjectPublicKeyInfo item is served with the application/cose-c509-pubkey+cbor media type, see {{cose-c509-pubkey}}, with the corresponding CoAP Content-Format defined in {{content-format}}. A stored file format is defined with "magic number" TBD2 using the reserved CBOR tag 55799 and the Content-Format TBD1, enveloped as described in {{Section 2.2 of RFC9277}}.
 
-The subjectPublicKeyAlgorithm field has the same encoding and semantics as the subjectPublicKeyAlgorithm field of TBSCertificate in {{I-D.ietf-cose-cbor-encoded-cert}}. The subjectPublicKey field has the same encoding and semantics as the subjectPublicKey field of TBSCertificate in {{I-D.ietf-cose-cbor-encoded-cert}}.
+The subjectPublicKeyAlgorithm and subjectPublicKey fields have the same encoding and semantics as the corresponding fields of TBSCertificate in {{I-D.ietf-cose-cbor-encoded-cert}}.
 
-In particular, algorithm-specific C509 encodings defined by {{I-D.ietf-cose-cbor-encoded-cert}} apply equally when the public key is represented using C509SubjectPublicKeyInfo. For example, the optimized RSA encoding and elliptic-curve public key encoding apply to C509SubjectPublicKeyInfo.
+In particular, algorithm-specific C509 encodings defined by {{I-D.ietf-cose-cbor-encoded-cert}} apply equally when the public key is represented using C509SubjectPublicKeyInfo. For example, the optimized RSA encoding and elliptic curve public key encoding apply to C509SubjectPublicKeyInfo.
 
 An elliptic curve public key is encoded as in a natively signed C509 certificate (type 2). The leading bytes 0xfe and 0xfd MUST NOT be used. When a Weierstrass-form elliptic curve public key is converted to an X.509 SubjectPublicKeyInfo, a point encoded with leading byte 0x02 or 0x03 is encoded as a compressed point, and a point encoded with leading byte 0x04 is encoded as an uncompressed point.
 
@@ -156,7 +156,7 @@ An elliptic curve public key is encoded as in a natively signed C509 certificate
 
 ## Extension Subject Directory Attributes {#ext-SubjectDirectoryAttributes}
 
-X.509 defines the SubjectDirectoryAttributes extension in {{Section 4.2.1.8 of RFC5280}}. This document defines a C509 representation of that extension and registers the extension ID 24 for it (see {{extype}}). {{RFC5280}} requires this extension to be non-critical, so the extensionID is encoded as the positive int 24 in conforming certificates. When re-encoding an X.509 certificate that marks this extension critical as a type 3 C509 certificate, the extensionID is encoded as -24 to preserve the criticality. The extension value is represented as SubjectDirectoryAttributes:
+X.509 defines the SubjectDirectoryAttributes extension in {{Section 4.2.1.8 of RFC5280}}. This document defines a C509 representation of that extension and registers the extension ID 24 for it (see {{extype}}). {{RFC5280}} requires this extension to be non-critical, so the 'extensionID' is encoded as the positive int 24 in conforming certificates. When re-encoding an X.509 certificate that marks this extension critical as a type 3 C509 certificate, the 'extensionID' is encoded as -24 to preserve the criticality. The extension value is represented as SubjectDirectoryAttributes:
 
 ~~~~~~~~~~~ cddl
 SubjectDirectoryAttributes = [ + Attribute ]
@@ -181,11 +181,11 @@ The subsections below constrain the values that can be carried with an int 'attr
 
 The personal data attribute 'DateOfBirth' is defined in {{RFC3739}} as 'GeneralizedTime'. {{RFC3739}} specifies that the value SHOULD specify GMT 12.00.00 (noon), for example "19590927120000Z". In C509, the 'attributeValue' field has type DateOfBirth: the date is encoded as a CBOR int containing the number of days since 1970-01-01. Dates before 1970-01-01 are encoded as negative integers. For example, September 27, 1959 is encoded as -3749.
 
-When a C509 DateOfBirth value is converted to X.509, it is encoded as the GeneralizedTime value "YYYYMMDD120000Z". In a C509 certificate or certification request that is re-encoded from X.509 (type 3), a DateOfBirth attribute whose value does not have this form MUST be encoded with an unwrapped CBOR OID attributeType, followed by the DER-encoded values.
+When a C509 DateOfBirth value is converted to X.509, it is encoded as the GeneralizedTime value "YYYYMMDD120000Z". In a C509 certificate or certification request that is re-encoded from X.509 (type 3), a DateOfBirth attribute whose value does not have this form MUST be encoded with an unwrapped CBOR OID 'attributeType', followed by the DER-encoded 'values'.
 
 ### PlaceOfBirth {#placeofbirth}
 
-The personal data attribute 'PlaceOfBirth' is defined in {{RFC3739}} as 'DirectoryString'. In C509, the 'attributeValue' field has type PlaceOfBirth. A UTF8String is encoded as CBOR text, and a PrintableString is encoded as CBOR text tagged with number 121 (alternative 0, as defined in {{IANA.cbor-tags}}). A PlaceOfBirth value of any other DirectoryString type cannot be carried with the int 'attributeType'; in a re-encoded C509 certificate or certification request (type 3), it is encoded with an unwrapped CBOR OID 'attributeType', followed by the DER-encoded 'values'. In natively signed C509 certificates and certification requests (type 2), only UTF8String (untagged CBOR text) is allowed.
+The personal data attribute 'PlaceOfBirth' is defined in {{RFC3739}} as 'DirectoryString'. In C509, the 'attributeValue' field has type PlaceOfBirth. A UTF8String is encoded as CBOR text, and a PrintableString is encoded as CBOR text tagged with number 121 (alternative 0, as defined in {{IANA.cbor-tags}}). A PlaceOfBirth value of any other DirectoryString type cannot be carried with the int 'attributeType'; in a re-encoded C509 certificate or certification request (type 3), it MUST be encoded with an unwrapped CBOR OID 'attributeType', followed by the DER-encoded 'values'. In natively signed C509 certificates and certification requests (type 2), only UTF8String (untagged CBOR text) is allowed.
 
 ### Gender
 
@@ -193,17 +193,17 @@ The personal data attribute 'Gender' is defined in {{RFC3739}} as 'PrintableStri
 
 ### CountryOfCitizenship
 
-The personal data attribute 'CountryOfCitizenship' is defined in {{RFC3739}} as 'PrintableString (SIZE(2))', containing an ISO 3166 country code. In C509, the 'attributeValue' field has type CBOR text, which MUST consist of exactly two characters from the PrintableString character set.
+The personal data attribute 'CountryOfCitizenship' is defined in {{RFC3739}} as 'PrintableString (SIZE(2))', containing an ISO 3166 country code as specified in {{RFC3739}}. In C509, the 'attributeValue' field has type CBOR text, which MUST consist of exactly two characters from the PrintableString character set.
 
 ### CountryOfResidence
 
-The personal data attribute 'CountryOfResidence' is defined in {{RFC3739}} as 'PrintableString (SIZE(2))', containing an ISO 3166 country code. In C509, the 'attributeValue' field has type CBOR text, which MUST consist of exactly two characters from the PrintableString character set.
+The personal data attribute 'CountryOfResidence' is defined in {{RFC3739}} as 'PrintableString (SIZE(2))', containing an ISO 3166 country code as specified in {{RFC3739}}. In C509, the 'attributeValue' field has type CBOR text, which MUST consist of exactly two characters from the PrintableString character set.
 
 When a C509 Gender, CountryOfCitizenship, or CountryOfResidence value is converted to X.509, it is encoded as a PrintableString. In a C509 certificate or certification request that is re-encoded from X.509 (type 3), an attribute of any of these types whose value is not a PrintableString MUST be encoded with an unwrapped CBOR OID 'attributeType', followed by the DER-encoded 'values'.
 
 ## Extension No Revocation Available {#ext-noRevAvail}
 
-{{RFC9608}} defines the No Revocation Available (noRevAvail) extension, which indicates that the issuer does not provide revocation status information for the certificate. This document defines a C509 representation of that extension and registers the extension ID 39 for it (see {{extype}}). {{RFC9608}} requires this extension to be non-critical, so the extensionID is encoded as the positive int 39 in conforming certificates. When re-encoding an X.509 certificate that marks this extension critical as a type 3 C509 certificate, the extensionID is encoded as -39 to preserve the criticality.
+{{RFC9608}} defines the No Revocation Available (noRevAvail) extension, which indicates that the issuer does not provide revocation status information for the certificate. This document defines a C509 representation of that extension and registers the extension ID 39 for it (see {{extype}}). {{RFC9608}} requires this extension to be non-critical, so the 'extensionID' is encoded as the positive int 39 in conforming certificates. When re-encoding an X.509 certificate that marks this extension critical as a type 3 C509 certificate, the 'extensionID' is encoded as -39 to preserve the criticality.
 
 In X.509, the extension value is the DER encoding of NULL. In C509, 'extensionValue' is encoded as the CBOR simple value null (0xf6), in the same way as for the OCSP No Check extension in {{I-D.ietf-cose-cbor-encoded-cert}}:
 
@@ -217,11 +217,11 @@ The rules in {{RFC9608}} for the use of this extension apply unchanged to C509 c
 
 # PEN-Scoped Identifiers {#pen-id}
 
-{{I-D.ietf-cose-cbor-encoded-cert}} defines integer identifiers for commonly used RDN attributes, attributes, extensions, extended key usages, and certificate policies, and this document registers further integer identifiers in the "C509 Attributes" registry (formerly "C509 CR Attributes", see {{attrtype}}). These integer identifiers provide compact encodings.
+{{I-D.ietf-cose-cbor-encoded-cert}} defines integer identifiers for commonly used RDN attributes, attributes, extensions, extended key usages, and certificate policies. This document registers further integer identifiers in the "C509 Attributes" registry (formerly "C509 CR Attributes", see {{attrtype}}), the "C509 Extensions" registry (see {{extype}}), and the "C509 Extended Key Usages" registry (see {{EKU}}). These integer identifiers provide compact encodings.
 
 An organization may also need identifiers that are meaningful only within its own ecosystem. Requiring each such identifier to be allocated from an IANA registry is unnecessary when the organization already has a globally unique namespace through a Private Enterprise Number {{IANA.PEN}}.
 
-This document therefore reserves two intervals for PEN-scoped identifiers for RDN attributes, attributes (see {{attrtype}}), extensions, extended key usages, and certificate policies. A PEN-scoped identifier is constructed from the numeric component of a PEN and an internal ID assigned by the organization to which the PEN is assigned. As specified in {{Section 3 of RFC9371}}, the numeric component ranges from 0 to 2^32 - 1.
+This document therefore reserves two intervals for PEN-scoped identifiers for RDN attributes, attributes (see {{attrtype}}), extensions, extended key usages, and certificate policies. A PEN-scoped identifier is constructed from the numeric component of a PEN and an internal ID assigned by the organization to which the PEN is assigned. As specified in {{Section 3 of RFC9371}}, the numeric component ranges from 0 to 2^32 - 1. In the following, PEN denotes this numeric component.
 
 The form of a PEN-scoped identifier is determined by the PEN and the internal ID as follows:
 
@@ -249,7 +249,7 @@ PEN-scoped identifiers do not prohibit the registration of an OID under the arc 
 
 PEN-scoped identifiers MAY be used in natively signed C509 certificates and certification requests (type 2), and in C509CertificationRequestTemplate. A template that requires a PEN-scoped identifier can only be satisfied by a type 2 certification request. PEN-scoped identifiers MAY also be used in C509 CRL and C509 OCSP structures defined in {{I-D.liao-cose-c509-revocation}} where those structures use the C509 registries listed above.
 
-PEN-scoped identifiers MUST NOT be used in C509 certificates and certification requests that are re-encoded from X.509 (type 3). In such structures, an object identifier under the arc of a PEN for which no integer is registered in the applicable C509 registry is encoded with the ~oid form. If an integer is registered, the encoding follows the rules of {{I-D.ietf-cose-cbor-encoded-cert}} and this document. A decoder MUST treat a type 3 structure that contains a PEN-scoped identifier as invalid. This keeps the encoding of a re-encoded structure independent of whether the encoder knows the definitions of the organization, and allows any party to reconstruct its DER encoding.
+PEN-scoped identifiers MUST NOT be used in C509 certificates and certification requests that are re-encoded from X.509 (type 3). In such structures, an object identifier under the arc of a PEN for which no integer is registered in the applicable C509 registry is encoded as an unwrapped CBOR OID (~oid). If an integer is registered, the encoding follows the rules of {{I-D.ietf-cose-cbor-encoded-cert}} and this document. A decoder MUST treat a type 3 structure that contains a PEN-scoped identifier as invalid. This keeps the encoding of a re-encoded structure independent of whether the encoder knows the definitions of the organization, and allows any party to reconstruct its DER encoding.
 
 ## Sign of PEN-Scoped Identifiers {#pen-id-sign}
 
@@ -281,7 +281,7 @@ Each C509 PEM block MUST conform to the following rules:
 
 - The binary payload is the CBOR encoding of the structure as specified in {{I-D.ietf-cose-cbor-encoded-cert}} or in this document.
 
-- The binary payload is base64-encoded according to {{Section 4 of RFC4648}} (standard Base64 with padding characters `=`). Generators MUST wrap the base64-encoded lines as specified in {{Section 2 of RFC7468}}. Parsers SHOULD ignore whitespace and other non-base64 characters as per {{Section 2 of RFC7468}}.
+- The binary payload is base64-encoded according to {{Section 4 of RFC4648}} (standard base64 with padding characters `=`). Generators MUST wrap the base64-encoded lines as specified in {{Section 2 of RFC7468}}. Parsers SHOULD ignore whitespace and other non-base64 characters as described in {{Section 2 of RFC7468}}.
 
 - The encapsulation boundaries follow {{Section 2 of RFC7468}}:
 
@@ -297,7 +297,7 @@ Each C509 PEM block MUST conform to the following rules:
 
 PEM label: `C509 CERTIFICATE`
 
-The payload is a CBOR-encoded `C509Certificate` as defined in {{I-D.ietf-cose-cbor-encoded-cert}}.
+The payload is a CBOR-encoded C509Certificate as defined in {{I-D.ietf-cose-cbor-encoded-cert}}.
 
 ~~~
 -----BEGIN C509 CERTIFICATE-----
@@ -310,7 +310,7 @@ The payload is a CBOR-encoded `C509Certificate` as defined in {{I-D.ietf-cose-cb
 
 PEM label: `COSE C509`
 
-The payload is a CBOR-encoded `COSE_C509` as defined in {{I-D.ietf-cose-cbor-encoded-cert}}.
+The payload is a CBOR-encoded COSE_C509 as defined in {{I-D.ietf-cose-cbor-encoded-cert}}.
 
 ~~~
 -----BEGIN COSE C509-----
@@ -323,7 +323,7 @@ The payload is a CBOR-encoded `COSE_C509` as defined in {{I-D.ietf-cose-cbor-enc
 
 PEM label: `C509 CERTIFICATE REQUEST`
 
-The payload is a CBOR-encoded `C509CertificationRequest` as defined in {{Section 4 of I-D.ietf-cose-cbor-encoded-cert}}.
+The payload is a CBOR-encoded C509CertificationRequest as defined in {{I-D.ietf-cose-cbor-encoded-cert}}.
 
 ~~~
 -----BEGIN C509 CERTIFICATE REQUEST-----
@@ -336,7 +336,7 @@ The payload is a CBOR-encoded `C509CertificationRequest` as defined in {{Section
 
 PEM label: `C509 PUBLIC KEY`
 
-The payload is a CBOR-encoded `C509SubjectPublicKeyInfo` as defined in {{publickey}}.
+The payload is a CBOR-encoded C509SubjectPublicKeyInfo as defined in {{publickey}}.
 
 ~~~
 -----BEGIN C509 PUBLIC KEY-----
@@ -349,7 +349,7 @@ The payload is a CBOR-encoded `C509SubjectPublicKeyInfo` as defined in {{publick
 
 PEM label: `C509 PRIVATE KEY`
 
-The payload is a CBOR-encoded `C509PrivateKey` as defined in {{I-D.ietf-cose-cbor-encoded-cert}}.
+The payload is a CBOR-encoded C509PrivateKey as defined in {{I-D.ietf-cose-cbor-encoded-cert}}.
 
 ~~~
 -----BEGIN C509 PRIVATE KEY-----
@@ -362,7 +362,7 @@ The payload is a CBOR-encoded `C509PrivateKey` as defined in {{I-D.ietf-cose-cbo
 
 PEM label: `C509 PEM`
 
-The payload is a CBOR-encoded `C509PEM` as defined in {{I-D.ietf-cose-cbor-encoded-cert}}.
+The payload is a CBOR-encoded C509PEM as defined in {{I-D.ietf-cose-cbor-encoded-cert}}.
 
 ~~~
 -----BEGIN C509 PEM-----
@@ -400,7 +400,7 @@ C509SubjectPublicKeyInfo carries the same information as the subject public key 
 
 ## Subject Directory Attributes {#sec-sda}
 
-The personal data attributes in {{ext-SubjectDirectoryAttributes}} (date of birth, place of birth, gender, country of citizenship, and country of residence) are personal data. Certificates are often public and can be sent in the clear, for example in protocols that do not encrypt the certificate exchange. Certification Authorities SHOULD include these attributes only when they are required by the application, and applications SHOULD consider the privacy impact of including them. The compact C509 encoding does not change the privacy properties of these attributes compared to X.509.
+The attributes in {{ext-SubjectDirectoryAttributes}} (date of birth, place of birth, gender, country of citizenship, and country of residence) contain personal data. Certificates are often public and can be sent in the clear, for example in protocols that do not encrypt the certificate exchange. Certification Authorities SHOULD include these attributes only when they are required by the application, and applications SHOULD consider the privacy impact of including them. The compact C509 encoding does not change the privacy properties of these attributes compared to X.509.
 
 ## No Revocation Available {#sec-noRevAvail}
 
@@ -424,7 +424,7 @@ Explanatory text is outside the base64-encoded payload. Such text is not authent
 
 ## C509 RDN Attributes Registry {#rdnatttype}
 
-This document updates the "C509 RDN Attributes" registry in the registry group "CBOR Encoded X.509 (C509)" defined in {{I-D.ietf-cose-cbor-encoded-cert}}. The intervals [2^31, 2^32 - 1] and [2^47, 2^48 - 1], which are part of the interval [65536, 2^63 - 1] reserved for Future Use, are reserved for PEN-scoped identifiers as specified in {{pen-id}}. IANA is requested to add the following note to the registry:
+This document updates the "C509 RDN Attributes" registry in the registry group "CBOR Encoded X.509 (C509)" defined in {{I-D.ietf-cose-cbor-encoded-cert}}. The intervals [2^31, 2^32 - 1] and [2^47, 2^48 - 1], which are part of the Future Use interval [65536, 2^63 - 1], are set aside for PEN-scoped identifiers as specified in {{pen-id}}. IANA is requested to add the following note to the registry:
 
 > Values in the intervals [2^31, 2^32 - 1] and [2^47, 2^48 - 1] are PEN-scoped identifiers as specified in [[this document]]. They are not assigned by IANA.
 
@@ -438,7 +438,7 @@ This document updates the "C509 CR Attributes" registry in the registry group "C
 
 - The column heading "CR Attribute" is renamed to "Attribute".
 
-- The intervals [2^31, 2^32 - 1] and [2^47, 2^48 - 1], which are part of the interval [65536, 2^63 - 1] reserved for Future Use, are reserved for PEN-scoped identifiers as specified in {{pen-id}}. IANA is requested to add the following note to the registry:
+- The intervals [2^31, 2^32 - 1] and [2^47, 2^48 - 1], which are part of the Future Use interval [65536, 2^63 - 1], are set aside for PEN-scoped identifiers as specified in {{pen-id}}. IANA is requested to add the following note to the registry:
 
   > Values in the intervals [2^31, 2^32 - 1] and [2^47, 2^48 - 1] are PEN-scoped identifiers as specified in [[this document]]. They are not assigned by IANA.
 
@@ -489,7 +489,7 @@ IANA is requested to add the following entries to the "C509 Attributes" registry
 
 ## C509 Extensions Registry {#extype}
 
-This document updates the "C509 Extensions" registry in the registry group "CBOR Encoded X.509 (C509)" defined in {{I-D.ietf-cose-cbor-encoded-cert}}. The intervals [2^31, 2^32 - 1] and [2^47, 2^48 - 1], which are part of the interval [65536, 2^63 - 1] reserved for Future Use, are reserved for PEN-scoped identifiers as specified in {{pen-id}}. IANA is requested to add the following note to the registry:
+This document updates the "C509 Extensions" registry in the registry group "CBOR Encoded X.509 (C509)" defined in {{I-D.ietf-cose-cbor-encoded-cert}}. The intervals [2^31, 2^32 - 1] and [2^47, 2^48 - 1], which are part of the Future Use interval [65536, 2^63 - 1], are set aside for PEN-scoped identifiers as specified in {{pen-id}}. IANA is requested to add the following note to the registry:
 
 > Values in the intervals [2^31, 2^32 - 1] and [2^47, 2^48 - 1] are PEN-scoped identifiers as specified in [[this document]]. They are not assigned by IANA.
 
@@ -519,13 +519,13 @@ IANA is requested to add the following entries to the "C509 Extensions" registry
 
 ## C509 Certificate Policies Registry {#CP}
 
-This document updates the "C509 Certificate Policies" registry in the registry group "CBOR Encoded X.509 (C509)" defined in {{I-D.ietf-cose-cbor-encoded-cert}}. The intervals [2^31, 2^32 - 1] and [2^47, 2^48 - 1], which are part of the interval [65536, 2^63 - 1] reserved for Future Use, are reserved for PEN-scoped identifiers as specified in {{pen-id}}. IANA is requested to add the following note to the registry:
+This document updates the "C509 Certificate Policies" registry in the registry group "CBOR Encoded X.509 (C509)" defined in {{I-D.ietf-cose-cbor-encoded-cert}}. The intervals [2^31, 2^32 - 1] and [2^47, 2^48 - 1], which are part of the Future Use interval [65536, 2^63 - 1], are set aside for PEN-scoped identifiers as specified in {{pen-id}}. IANA is requested to add the following note to the registry:
 
 > Values in the intervals [2^31, 2^32 - 1] and [2^47, 2^48 - 1] are PEN-scoped identifiers as specified in [[this document]]. They are not assigned by IANA.
 
 ## C509 Extended Key Usages Registry {#EKU}
 
-This document updates the "C509 Extended Key Usages" registry in the registry group "CBOR Encoded X.509 (C509)" defined in {{I-D.ietf-cose-cbor-encoded-cert}}. The intervals [2^31, 2^32 - 1] and [2^47, 2^48 - 1], which are part of the interval [65536, 2^63 - 1] reserved for Future Use, are reserved for PEN-scoped identifiers as specified in {{pen-id}}. IANA is requested to add the following note to the registry:
+This document updates the "C509 Extended Key Usages" registry in the registry group "CBOR Encoded X.509 (C509)" defined in {{I-D.ietf-cose-cbor-encoded-cert}}. The intervals [2^31, 2^32 - 1] and [2^47, 2^48 - 1], which are part of the Future Use interval [65536, 2^63 - 1], are set aside for PEN-scoped identifiers as specified in {{pen-id}}. IANA is requested to add the following note to the registry:
 
 > Values in the intervals [2^31, 2^32 - 1] and [2^47, 2^48 - 1] are PEN-scoped identifiers as specified in [[this document]]. They are not assigned by IANA.
 
@@ -650,11 +650,12 @@ IANA is requested to add an entry for `application/cose-c509-pubkey+cbor` to the
 | application/cose-c509-pubkey+cbor | - | {{cose-c509-pubkey}} | TBD1 | [[this document]] |
 {: #tab-format-ids title="CoAP Content-Format IDs"}
 
-## Media Type Application Registry
+## Media Type Application Registry {#media-type}
 
-IANA is requested to assign the following entries into the "application" registry in the registry group "Media Types" with this document as reference, following the procedures in {{RFC6838}}.
+IANA is requested to register the following media type in the "application" registry in the registry group "Media Types" with this document as reference, following the procedures in {{RFC6838}}.
 
 ### Media Type application/cose-c509-pubkey+cbor {#cose-c509-pubkey}
+
 When the 'application/cose-c509-pubkey+cbor' media type is used, the data is a C509SubjectPublicKeyInfo structure.
 
 Type name: application
@@ -673,7 +674,7 @@ Interoperability considerations: N/A
 
 Published specification: [[this document]]
 
-Applications that use this media type: Applications that employ COSE and use C509 as a certificate type.
+Applications that use this media type: Applications that employ COSE and use C509 public keys.
 
 Fragment identifier considerations: N/A
 
