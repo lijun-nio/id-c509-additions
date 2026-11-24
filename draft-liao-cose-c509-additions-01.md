@@ -221,9 +221,11 @@ The rules in {{RFC9608}} for the use of this extension apply unchanged to C509 c
 
 An organization may also need identifiers that are meaningful only within its own ecosystem. Requiring each such identifier to be allocated from an IANA registry is unnecessary when the organization already has a globally unique namespace through a Private Enterprise Number {{IANA.PEN}}.
 
-This document therefore reserves two intervals for PEN-scoped identifiers for RDN attributes, attributes (see {{attrtype}}), extensions, extended key usages, and certificate policies. A PEN-scoped identifier is constructed from the numeric component of a PEN and an internal ID assigned by the organization to which the PEN is assigned. As specified in {{Section 3 of RFC9371}}, the numeric component ranges from 0 to 2^32 - 1, but 0 and 2^32 - 1 are reserved and MUST NOT be used to construct PEN-scoped identifiers.
+This document therefore reserves two intervals for PEN-scoped identifiers for RDN attributes, attributes (see {{attrtype}}), extensions, extended key usages, and certificate policies. A PEN-scoped identifier is constructed from the numeric component of a PEN and an internal ID assigned by the organization to which the PEN is assigned. As specified in {{Section 3 of RFC9371}}, the numeric component ranges from 0 to 2^32 - 1.
 
-- Short form, in the interval [2^31, 2^32 - 1]: for a PEN in [1, 2^21 - 1] and an internal ID in [0, 2^10 - 1], the identifier is
+The form of a PEN-scoped identifier is determined by the PEN and the internal ID as follows:
+
+- For a PEN in [0, 2^21 - 1] and an internal ID in [0, 2^10 - 1], the short form MUST be used. The identifier is in the interval [2^31, 2^32 - 1] and is
 
   ~~~
   2^31 + PEN * 2^10 + internal ID
@@ -231,7 +233,7 @@ This document therefore reserves two intervals for PEN-scoped identifiers for RD
 
   i.e., the bit 1 followed by the 21-bit PEN and the 10-bit internal ID. It is encoded in 5 bytes as a CBOR int.
 
-- Long form, in the interval [2^47, 2^48 - 1]: for a PEN in [1, 2^32 - 2] and an internal ID in [0, 2^15 - 1], the identifier is
+- For a PEN in [2^21, 2^32 - 1] and an internal ID in [0, 2^15 - 1], or for a PEN in [0, 2^32 - 1] and an internal ID in [2^10, 2^15 - 1], the long form MUST be used. The identifier is in the interval [2^47, 2^48 - 1] and is
 
   ~~~
   2^47 + PEN * 2^15 + internal ID
@@ -239,7 +241,11 @@ This document therefore reserves two intervals for PEN-scoped identifiers for RD
 
   i.e., the bit 1 followed by the 32-bit PEN and the 15-bit internal ID. It is encoded in 9 bytes as a CBOR int.
 
-If a PEN-scoped identifier can be represented in the short form, it MUST be encoded in the short form. The long form MUST only be used if the PEN is greater than or equal to 2^21 or the internal ID is greater than or equal to 2^10. This ensures that each PEN-scoped identifier has exactly one encoding. A decoder MUST reject a structure containing a long-form identifier that could have been encoded in the short form.
+- An internal ID greater than or equal to 2^15 is not allowed; no PEN-scoped identifier can be constructed for it.
+
+These cases do not overlap, so each PEN-scoped identifier has exactly one encoding. A decoder MUST reject a structure containing a long-form identifier with a PEN less than 2^21 and an internal ID less than 2^10.
+
+PEN-scoped identifiers do not prohibit the registration of an OID under the arc of a PEN in a C509 registry. Such an OID can be registered with an integer value outside the intervals reserved for PEN-scoped identifiers, following the registration procedure of the applicable registry. A registered value can be used in all C509 structures, including those re-encoded from X.509 (type 3).
 
 PEN-scoped identifiers MAY be used in natively signed C509 certificates and certification requests (type 2), and in C509CertificationRequestTemplate. A template that requires a PEN-scoped identifier can only be satisfied by a type 2 certification request. PEN-scoped identifiers MAY also be used in C509 CRL and C509 OCSP structures defined in {{I-D.liao-cose-c509-revocation}} where those structures use the C509 registries listed above.
 
