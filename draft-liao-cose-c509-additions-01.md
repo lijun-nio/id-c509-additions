@@ -30,7 +30,6 @@ normative:
   RFC7468:
   RFC9090:
   RFC9277:
-  RFC9371:
   RFC9608:
   I-D.ietf-cose-cbor-encoded-cert:
   IANA.cbor-tags:
@@ -42,6 +41,7 @@ normative:
 
 informative:
   RFC6838:
+  RFC9371:
   I-D.liao-cose-c509-revocation:
   IANA.SMI:
     title: Structure of Management Information (SMI) Numbers (MIB Module Registrations)
@@ -156,7 +156,7 @@ An elliptic curve public key is encoded as in a natively signed C509 certificate
 
 ## Extension Subject Directory Attributes {#ext-SubjectDirectoryAttributes}
 
-X.509 defines the SubjectDirectoryAttributes extension in {{Section 4.2.1.8 of RFC5280}}. This document defines a C509 representation of that extension and registers the extension ID 24 for it (see {{extype}}). {{RFC5280}} requires this extension to be non-critical, so the 'extensionID' is encoded as the positive int 24 in conforming certificates. When re-encoding an X.509 certificate that marks this extension critical as a type 3 C509 certificate, the 'extensionID' is encoded as -24 to preserve the criticality. The extension value is represented as SubjectDirectoryAttributes:
+X.509 defines the SubjectDirectoryAttributes extension in {{Section 4.2.1.8 of RFC5280}}. This document defines a C509 representation of that extension and registers the extension ID TBD8 for it (see {{extype}}). {{RFC5280}} requires this extension to be non-critical, so the 'extensionID' is encoded as the positive int TBD8 in conforming certificates. When re-encoding an X.509 certificate that marks this extension critical as a type 3 C509 certificate, the 'extensionID' is encoded as -TBD8 to preserve the criticality. The extension value is represented as SubjectDirectoryAttributes:
 
 ~~~~~~~~~~~ cddl
 SubjectDirectoryAttributes = [ + Attribute ]
@@ -168,7 +168,7 @@ PlaceOfBirth = text / #6.121(text)
 {: sourcecode-name="c509additions.cddl"}
 {: #fig-SubjectDirectoryAttributes title="CDDL for SubjectDirectoryAttributes"}
 
-[[RFC Editor: please remove this paragraph before publication.]] The value 24 was assigned to subjectDirectoryAttributes in earlier versions of {{I-D.ietf-cose-cbor-encoded-cert}} with a different encoding of the extension value. Implementations of those versions are not interoperable with this document.
+[[RFC Editor: please remove this paragraph before publication.]] The value 24 recommended for TBD8 was assigned to subjectDirectoryAttributes in earlier versions of {{I-D.ietf-cose-cbor-encoded-cert}} with a different encoding of the extension value. Implementations of those versions are not interoperable with this document.
 
 Attribute is defined in {{updates-attribute}}. Each 'attributeType' is encoded either as a CBOR int (see {{attrtype}}) or as an unwrapped CBOR OID {{RFC9090}}.
 
@@ -203,7 +203,7 @@ When a C509 Gender, CountryOfCitizenship, or CountryOfResidence value is convert
 
 ## Extension No Revocation Available {#ext-noRevAvail}
 
-{{RFC9608}} defines the No Revocation Available (noRevAvail) extension, which indicates that the issuer does not provide revocation status information for the certificate. This document defines a C509 representation of that extension and registers the extension ID 39 for it (see {{extype}}). {{RFC9608}} requires this extension to be non-critical, so the 'extensionID' is encoded as the positive int 39 in conforming certificates. When re-encoding an X.509 certificate that marks this extension critical as a type 3 C509 certificate, the 'extensionID' is encoded as -39 to preserve the criticality.
+{{RFC9608}} defines the No Revocation Available (noRevAvail) extension, which indicates that the issuer does not provide revocation status information for the certificate. This document defines a C509 representation of that extension and registers the extension ID TBD9 for it (see {{extype}}). {{RFC9608}} requires this extension to be non-critical, so the 'extensionID' is encoded as the positive int TBD9 in conforming certificates. When re-encoding an X.509 certificate that marks this extension critical as a type 3 C509 certificate, the 'extensionID' is encoded as -TBD9 to preserve the criticality.
 
 In X.509, the extension value is the DER encoding of NULL. In C509, 'extensionValue' is encoded as the CBOR simple value null (0xf6), in the same way as for the OCSP No Check extension in {{I-D.ietf-cose-cbor-encoded-cert}}:
 
@@ -448,35 +448,35 @@ IANA is requested to add the following entries to the "C509 Attributes" registry
 +-------+-----------------------------------------------------------+
 | Value | Attribute                                                 |
 +=======+===========================================================+
-|     3 | Name:            DateOfBirth                              |
+|  TBD3 | Name:            DateOfBirth                              |
 |       | Identifiers:     id-pda-dateOfBirth                       |
 |       | OID:             1.3.6.1.5.5.7.9.1                        |
 |       | DER:             06 08 2B 06 01 05 05 07 09 01            |
 |       | Comments:        RFC 3739                                 |
 |       | attributeValue:  DateOfBirth                              |
 +-------+-----------------------------------------------------------+
-|     4 | Name:            PlaceOfBirth                             |
+|  TBD4 | Name:            PlaceOfBirth                             |
 |       | Identifiers:     id-pda-placeOfBirth                      |
 |       | OID:             1.3.6.1.5.5.7.9.2                        |
 |       | DER:             06 08 2B 06 01 05 05 07 09 02            |
 |       | Comments:        RFC 3739                                 |
 |       | attributeValue:  PlaceOfBirth                             |
 +-------+-----------------------------------------------------------+
-|     5 | Name:            Gender                                   |
+|  TBD5 | Name:            Gender                                   |
 |       | Identifiers:     id-pda-gender                            |
 |       | OID:             1.3.6.1.5.5.7.9.3                        |
 |       | DER:             06 08 2B 06 01 05 05 07 09 03            |
 |       | Comments:        RFC 3739                                 |
 |       | attributeValue:  text                                     |
 +-------+-----------------------------------------------------------+
-|     6 | Name:            CountryOfCitizenship                     |
+|  TBD6 | Name:            CountryOfCitizenship                     |
 |       | Identifiers:     id-pda-countryOfCitizenship              |
 |       | OID:             1.3.6.1.5.5.7.9.4                        |
 |       | DER:             06 08 2B 06 01 05 05 07 09 04            |
 |       | Comments:        RFC 3739                                 |
 |       | attributeValue:  text                                     |
 +-------+-----------------------------------------------------------+
-|     7 | Name:            CountryOfResidence                       |
+|  TBD7 | Name:            CountryOfResidence                       |
 |       | Identifiers:     id-pda-countryOfResidence                |
 |       | OID:             1.3.6.1.5.5.7.9.5                        |
 |       | DER:             06 08 2B 06 01 05 05 07 09 05            |
@@ -486,6 +486,8 @@ IANA is requested to add the following entries to the "C509 Attributes" registry
 ~~~~~~~~~~~
 {: #fig-attrtype-additions title="Additional Entries in the C509 Attributes Registry"}
 {: artwork-align="center"}
+
+[[RFC Editor: please remove this paragraph before publication.]] The recommended values are: TBD3 = 4, TBD4 = 5, TBD5 = 6, TBD6 = 7, TBD7 = 8. IANA is requested to assign these values if they are available. The RFC Editor is requested to replace each TBD value in this document with the value assigned by IANA.
 
 ## C509 Extensions Registry {#extype}
 
@@ -499,14 +501,14 @@ IANA is requested to add the following entries to the "C509 Extensions" registry
 +-------+-----------------------------------------------------------+
 | Value | Extension                                                 |
 +=======+===========================================================+
-|    24 | Name:            Subject Directory Attributes             |
+|  TBD8 | Name:            Subject Directory Attributes             |
 |       | Identifiers:     subjectDirectoryAttributes               |
 |       | OID:             2.5.29.9                                 |
 |       | DER:             06 03 55 1D 09                           |
 |       | Comments:        RFC 5280                                 |
 |       | extensionValue:  SubjectDirectoryAttributes               |
 +-------+-----------------------------------------------------------+
-|    39 | Name:            No Revocation Available                  |
+|  TBD9 | Name:            No Revocation Available                  |
 |       | Identifiers:     noRevAvail                               |
 |       | OID:             2.5.29.56                                |
 |       | DER:             06 03 55 1D 38                           |
@@ -516,6 +518,8 @@ IANA is requested to add the following entries to the "C509 Extensions" registry
 ~~~~~~~~~~~
 {: #fig-extype-additions title="Additional Entries in the C509 Extensions Registry"}
 {: artwork-align="center"}
+
+[[RFC Editor: please remove this paragraph before publication.]] The recommended values are: TBD8 = 24, TBD9 = 39. IANA is requested to assign these values if they are available. The RFC Editor is requested to replace each TBD value in this document with the value assigned by IANA.
 
 ## C509 Certificate Policies Registry {#CP}
 
@@ -535,103 +539,103 @@ IANA is requested to add the following entries to the "C509 Extended Key Usages"
 +-------+--------------------------------------------------------------+
 | Value | Extended Key Usage                                           |
 +=======+==============================================================+
-|    19 | Name:            IPsec IKE                                   |
+| TBD10 | Name:            IPsec IKE                                   |
 |       | Identifiers:     id-kp-ipsecIKE                              |
 |       | OID:             1.3.6.1.5.5.7.3.17                          |
 |       | DER:             06 08 2B 06 01 05 05 07 03 11               |
 |       | Comments:        RFC 4945                                    |
 +-------+--------------------------------------------------------------+
-|    21 | Name:            IP Security IKE Intermediate                |
+| TBD11 | Name:            IP Security IKE Intermediate                |
 |       | Identifiers:     iKEIntermediate                             |
 |       | OID:             1.3.6.1.5.5.8.2.2                           |
 |       | DER:             06 08 2B 06 01 05 05 08 02 02               |
 |       | Comments:        IANA SMI Numbers                            |
 +-------+--------------------------------------------------------------+
-|    22 | Name:            Document Signing                            |
+| TBD12 | Name:            Document Signing                            |
 |       | Identifiers:     id-kp-documentSigning                       |
 |       | OID:             1.3.6.1.5.5.7.3.36                          |
 |       | DER:             06 08 2B 06 01 05 05 07 03 24               |
 |       | Comments:        RFC 9336                                    |
 +-------+--------------------------------------------------------------+
-|    24 | Name:            EAP over LAN                                |
+| TBD13 | Name:            EAP over LAN                                |
 |       | Identifiers:     id-kp-eapOverLAN                            |
 |       | OID:             1.3.6.1.5.5.7.3.14                          |
 |       | DER:             06 08 2B 06 01 05 05 07 03 0E               |
 |       | Comments:        RFC 4334                                    |
 +-------+--------------------------------------------------------------+
-|    25 | Name:            CAPWAP Access Controller                    |
+| TBD14 | Name:            CAPWAP Access Controller                    |
 |       | Identifiers:     id-kp-capwapAC                              |
 |       | OID:             1.3.6.1.5.5.7.3.18                          |
 |       | DER:             06 08 2B 06 01 05 05 07 03 12               |
 |       | Comments:        RFC 5415                                    |
 +-------+--------------------------------------------------------------+
-|    26 | Name:            CAPWAP Wireless Termination Point           |
+| TBD15 | Name:            CAPWAP Wireless Termination Point           |
 |       | Identifiers:     id-kp-capwapWTP                             |
 |       | OID:             1.3.6.1.5.5.7.3.19                          |
 |       | DER:             06 08 2B 06 01 05 05 07 03 13               |
 |       | Comments:        RFC 5415                                    |
 +-------+--------------------------------------------------------------+
-|    27 | Name:            BGPsec Router                               |
+| TBD16 | Name:            BGPsec Router                               |
 |       | Identifiers:     id-kp-bgpsec-router                         |
 |       | OID:             1.3.6.1.5.5.7.3.30                          |
 |       | DER:             06 08 2B 06 01 05 05 07 03 1E               |
 |       | Comments:        RFC 8209                                    |
 +-------+--------------------------------------------------------------+
-|    28 | Name:            RPC over TLS Client                         |
+| TBD17 | Name:            RPC over TLS Client                         |
 |       | Identifiers:     id-kp-rpcTLSClient                          |
 |       | OID:             1.3.6.1.5.5.7.3.33                          |
 |       | DER:             06 08 2B 06 01 05 05 07 03 21               |
 |       | Comments:        RFC 9289                                    |
 +-------+--------------------------------------------------------------+
-|    29 | Name:            RPC over TLS Server                         |
+| TBD18 | Name:            RPC over TLS Server                         |
 |       | Identifiers:     id-kp-rpcTLSServer                          |
 |       | OID:             1.3.6.1.5.5.7.3.34                          |
 |       | DER:             06 08 2B 06 01 05 05 07 03 22               |
 |       | Comments:        RFC 9289                                    |
 +-------+--------------------------------------------------------------+
-|    30 | Name:            JSON Web Token Signing                      |
+| TBD19 | Name:            JSON Web Token Signing                      |
 |       | Identifiers:     id-kp-jwt                                   |
 |       | OID:             1.3.6.1.5.5.7.3.37                          |
 |       | DER:             06 08 2B 06 01 05 05 07 03 25               |
 |       | Comments:        RFC 9509                                    |
 +-------+--------------------------------------------------------------+
-|    31 | Name:            HTTP Content Encryption                     |
+| TBD20 | Name:            HTTP Content Encryption                     |
 |       | Identifiers:     id-kp-httpContentEncrypt                    |
 |       | OID:             1.3.6.1.5.5.7.3.38                          |
 |       | DER:             06 08 2B 06 01 05 05 07 03 26               |
 |       | Comments:        RFC 9509                                    |
 +-------+--------------------------------------------------------------+
-|    32 | Name:            OAuth Access Token Signing                  |
+| TBD21 | Name:            OAuth Access Token Signing                  |
 |       | Identifiers:     id-kp-oauthAccessTokenSigning               |
 |       | OID:             1.3.6.1.5.5.7.3.39                          |
 |       | DER:             06 08 2B 06 01 05 05 07 03 27               |
 |       | Comments:        RFC 9509                                    |
 +-------+--------------------------------------------------------------+
-|    33 | Name:            Configuration Signing                       |
+| TBD22 | Name:            Configuration Signing                       |
 |       | Identifiers:     id-kp-configSigning                         |
 |       | OID:             1.3.6.1.5.5.7.3.41                          |
 |       | DER:             06 08 2B 06 01 05 05 07 03 29               |
 |       | Comments:        RFC 9809                                    |
 +-------+--------------------------------------------------------------+
-|    34 | Name:            Trust Anchor Configuration Signing          |
+| TBD23 | Name:            Trust Anchor Configuration Signing          |
 |       | Identifiers:     id-kp-trustAnchorConfigSigning              |
 |       | OID:             1.3.6.1.5.5.7.3.42                          |
 |       | DER:             06 08 2B 06 01 05 05 07 03 2A               |
 |       | Comments:        RFC 9809                                    |
 +-------+--------------------------------------------------------------+
-|    35 | Name:            Update Package Signing                      |
+| TBD24 | Name:            Update Package Signing                      |
 |       | Identifiers:     id-kp-updatePackageSigning                  |
 |       | OID:             1.3.6.1.5.5.7.3.43                          |
 |       | DER:             06 08 2B 06 01 05 05 07 03 2B               |
 |       | Comments:        RFC 9809                                    |
 +-------+--------------------------------------------------------------+
-|    36 | Name:            Safety Communication                        |
+| TBD25 | Name:            Safety Communication                        |
 |       | Identifiers:     id-kp-safetyCommunication                   |
 |       | OID:             1.3.6.1.5.5.7.3.44                          |
 |       | DER:             06 08 2B 06 01 05 05 07 03 2C               |
 |       | Comments:        RFC 9809                                    |
 +-------+--------------------------------------------------------------+
-|    37 | Name:            OAuth Status List Signing                   |
+| TBD26 | Name:            OAuth Status List Signing                   |
 |       | Identifiers:     id-kp-oauthStatusSigning                    |
 |       | OID:             1.3.6.1.5.5.7.3.45                          |
 |       | DER:             06 08 2B 06 01 05 05 07 03 2D               |
@@ -640,6 +644,8 @@ IANA is requested to add the following entries to the "C509 Extended Key Usages"
 ~~~~~~~~~~~
 {: #fig-eku-additions title="Additional Entries in the C509 Extended Key Usages Registry"}
 {: artwork-align="center"}
+
+[[RFC Editor: please remove this paragraph before publication.]] The recommended values are: TBD10 = 19, TBD11 = 21, TBD12 = 22, TBD13 = 24, TBD14 = 25, TBD15 = 26, TBD16 = 27, TBD17 = 28, TBD18 = 29, TBD19 = 30, TBD20 = 31, TBD21 = 32, TBD22 = 33, TBD23 = 34, TBD24 = 35, TBD25 = 36, TBD26 = 37. IANA is requested to assign these values if they are available. The RFC Editor is requested to replace each TBD value in this document with the value assigned by IANA.
 
 ## CoAP Content-Formats Registry {#content-format}
 
